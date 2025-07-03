@@ -1,4 +1,4 @@
-# 🧠 Flashcard AI App — Multi-Platform Benchmarking Project
+# Flashcard AI App — Multi-Platform Benchmarking Project
 
 An AI-powered flashcard learning app built in **Flutter**, **React Native**, **Swift (iOS)**, and **Kotlin (Android)** to benchmark modern mobile development platforms.
 
