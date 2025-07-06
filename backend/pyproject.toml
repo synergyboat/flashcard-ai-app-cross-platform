@@ -1,0 +1,11 @@
+[project]
+name = "flashcard-api"
+version = "0.1.0"
+description = "API for generating flashcards from text and docs"
+authors= ["amannirala13"]
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi>=0.115.14",
+    "filetype>=1.2.0",
+    "uvicorn>=0.35.0",
+]
