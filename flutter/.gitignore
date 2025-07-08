@@ -1,0 +1,142 @@
+# ------------------------------------------------------------
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+*.tmp
+*.temp
+*.bak
+*.orig
+*.lock
+.DS_Store
+.atom/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# ------------------------------------------------------------
+# Flutter / Dart / Pub
+.dart_tool/
+.packages
+.pub/
+.pub-cache/
+.flutter-plugins
+.flutter-plugins-dependencies
+.melos_tool/
+build/
+pubspec.lock
+
+# API docs
+doc/api/
+
+# Flutter obfuscation/symbol files
+app.*.map.json
+app.*.symbols
+
+# Generated files
+*.g.dart
+*.freezed.dart
+*.gr.dart
+
+# ------------------------------------------------------------
+# Android
+android/.gradle/
+android/.idea/
+android/local.properties
+android/**/build/
+android/**/captures/
+android/**/gradle-wrapper.properties
+
+# Specific Android build modes
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# Keystore files (should never be committed)
+*.jks
+*.keystore
+
+# ------------------------------------------------------------
+# iOS
+ios/.symlinks/
+ios/Flutter/Generated.xcconfig
+ios/Flutter/flutter_export_environment.sh
+ios/Flutter/AppFrameworkInfo.plist
+ios/Flutter/ephemeral/
+ios/.generated/
+ios/Pods/
+ios/build/
+ios/Runner.xcworkspace/
+ios/Runner.xcodeproj/project.xcworkspace/
+ios/**/GeneratedPluginRegistrant.*
+
+# Xcode
+*.xcuserstate
+*.xcworkspace
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+*.xcuserdatad/
+*.xcscmblueprint
+
+# ------------------------------------------------------------
+# Web
+/web/build/
+
+# ------------------------------------------------------------
+# Desktop
+# Windows
+windows/flutter/generated_plugin_registrant.cc
+windows/flutter/generated_plugin_registrant.h
+
+# macOS
+macos/Flutter/GeneratedPluginRegistrant.swift
+macos/Flutter/ephemeral/
+
+# Linux
+linux/flutter/generated_plugin_registrant.cc
+linux/flutter/generated_plugin_registrant.h
+
+# ------------------------------------------------------------
+# IDEs
+# JetBrains / IntelliJ / Android Studio
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# VS Code (optional – uncomment if not shared)
+#.vscode/
+
+# ------------------------------------------------------------
+# Environment and Secrets
+.env
+.env.local
+.env.production
+.env.staging
+
+# Firebase (if using)
+google-services.json
+GoogleService-Info.plist
+firebase_options.dart
+
+# ------------------------------------------------------------
+# Database and Storage
+*.db
+*.sqlite
+*.sqlite3
+
+# ------------------------------------------------------------
+# Test / Coverage
+coverage/
+
+# ------------------------------------------------------------
+# Additional Development Files
+# Log files
+logs/
+
+# Backup files
+*~
+*.backup
