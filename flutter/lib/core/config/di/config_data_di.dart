@@ -10,4 +10,7 @@ void configDataDi() {
 
   // You can also register your data sources or APIs if needed
   // getIt.registerSingleton<ApiService>(ApiService());
+
+  getIt.registerSingleton<OpenAISource>(OpenAISource());
+  getIt.registerSingleton<AIGeneratorRepository>(AIGeneratorRepositoryImpl(openAiSource: getIt<OpenAISource>()));
 }
