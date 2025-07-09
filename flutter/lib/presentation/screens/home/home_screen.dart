@@ -1,4 +1,7 @@
+import 'package:flashcard/domain/use_case/ai/generate_deck_with_ai_use_case.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
+import '../../../core/config/di/config_di.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -8,6 +11,11 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+
+  final Logger _logger = getIt<Logger>();
+  String _promptText = "";
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -17,13 +25,22 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               children:[
                 TextField(
+                  onChanged: (text){
+                    setState(() {
+                      _promptText = text;
+                    });
+                  },
                   decoration: InputDecoration(
                     labelText: 'Search',
                     hintText: "Enter search term",
                     border: OutlineInputBorder(),
                   ),
                 ),
-                TextButton(onPressed: ()=>{}, child: Text("Generate with AI")),
+                TextButton(onPressed: ()=>{
+                  getIt<GenerateDeckWithAIUseCase>().call(prompt: _promptText)
+                      .then((value) => _logger.d(value.toString()))
+                      .catchError((error) => _logger.e(error))
+                }, child: Text("Generate with AI")),
                 TextButton(onPressed: ()=>{}, child: Text("Add manually")),
               ],
             ),

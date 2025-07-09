@@ -1,5 +1,9 @@
+import 'dart:convert';
+
 import 'package:flashcard/domain/entities/flashcard.dart';
 import 'package:flashcard/domain/repository/ai/ai_generator_repository.dart';
+
+import '../../entities/deck.dart';
 
 class GenerateDeckWithAIUseCase {
   final AIGeneratorRepository _aiRepository;
@@ -8,16 +12,21 @@ class GenerateDeckWithAIUseCase {
     this._aiRepository
   );
 
-  Future<Map<String, Flashcard>> call({
+  Future<Deck> call({
     String? deckId,
-    int count = 5,
+    int count = 10,
     String prompt = ""}
       ) async {
-    final generatedFlashcards = await _aiRepository.generateDeck(
+    final String? response = await _aiRepository.generateDeck(
         deckId,
         count,
         prompt
     );
-    return generatedFlashcards;
+    if (response == null || response.isEmpty) {
+      throw Exception("Failed to generate deck with AI");
+    }
+    // Assuming the generated flashcards are in a format that can be parsed into a Deck
+    Deck deck = Deck.fromJson(json.decode(response));
+    return deck;
   }
 }
