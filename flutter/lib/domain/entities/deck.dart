@@ -17,4 +17,13 @@ class Deck {
   String toString() {
     return 'Deck(id: $id, name: $name, description: $description)';
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'description': description,
+      'flashcards': flashcards.map((f) => f.toJson()).toList(),
+    };
+  }
 }

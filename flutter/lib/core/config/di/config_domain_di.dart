@@ -10,4 +10,5 @@ void configDomainDi() {
 
   // You can also register your data sources or APIs if needed
   // getIt.registerSingleton<ApiService>(ApiService());
+  getIt.registerSingleton<GenerateDeckWithAIUseCase>(GenerateDeckWithAIUseCase(getIt<AIGeneratorRepository>()));
 }

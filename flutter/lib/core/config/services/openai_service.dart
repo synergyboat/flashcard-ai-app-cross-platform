@@ -5,5 +5,4 @@ class OpenAiService {
     OpenAI.apiKey = key;
     OpenAI.requestsTimeOut = Duration(seconds: 60);
   }
-
 }
