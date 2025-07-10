@@ -1,13 +1,13 @@
 import 'flashcard.dart';
 
 class Deck {
-  final String id;
-  final String name;
-  final String description;
+  final String? id;
+  final String? name;
+  final String? description;
   final List<Flashcard> flashcards;
 
   Deck({
-    required this.id,
+    this.id,
     required this.name,
     required this.description,
     this.flashcards = const [],
@@ -15,7 +15,7 @@ class Deck {
 
   @override
   String toString() {
-    return 'Deck(id: $id, name: $name, description: $description)';
+    return 'Deck(id: $id, name: $name, description: $description), flashcards: ${flashcards.toString()})';
   }
 
   Map<String, dynamic> toJson() {
@@ -25,5 +25,16 @@ class Deck {
       'description': description,
       'flashcards': flashcards.map((f) => f.toJson()).toList(),
     };
+  }
+
+  factory Deck.fromJson(Map<String, dynamic> json) {
+    return Deck(
+      id: json['id'] as String?,
+      name: json['name'] as String?,
+      description: json['description'] as String?,
+      flashcards: (json['flashcards'] as List<dynamic>)
+          .map((f) => Flashcard.fromJson(f as Map<String, dynamic>))
+          .toList(),
+    );
   }
 }

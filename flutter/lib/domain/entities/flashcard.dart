@@ -24,5 +24,14 @@ class Flashcard {
       'answer': answer,
     };
   }
+
+  factory Flashcard.fromJson(Map<String, dynamic> json) {
+    return Flashcard(
+      id: json['id'] as String?,
+      deckId: json['deckId'] as String?,
+      question: json['question'] as String,
+      answer: json['answer'] as String,
+    );
+  }
 }
 

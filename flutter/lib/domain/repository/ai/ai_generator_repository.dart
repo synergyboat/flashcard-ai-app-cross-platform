@@ -8,7 +8,7 @@ abstract class AIGeneratorRepository {
   //     String prompt);
 
   /// Generates a deck of flashcards based on the provided prompt and count.
-  Future<dynamic> generateDeck(
+  Future<String?> generateDeck(
       String? deckId,
       int count,
       String prompt
