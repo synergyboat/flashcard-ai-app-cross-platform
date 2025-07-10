@@ -1,3 +1,4 @@
+import 'package:flashcard/presentation/components/bars/flashcard_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 
@@ -18,10 +19,25 @@ class _AIGenerateDeckScreenState extends State<AIGenerateDeckScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: Text("AI Generate Deck"),
+        appBar: FlashcardAppBar(
+          title: "AI Generate Deck",
         ),
-        body: Text("")
+        body: SafeArea(
+            child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                child: Column(
+                children: [
+                  const SizedBox(height: 32.0),
+                  Center(
+                    child: Text("Generate Deck with AI",
+                      textAlign: TextAlign.left,
+                      style: TextStyle(fontSize: 18, color: Colors.black87, fontWeight: FontWeight.w600, height: 0.9,),
+                    ),
+                  ),
+              ],
+            )
+            )
+        )
     );
   }
 }

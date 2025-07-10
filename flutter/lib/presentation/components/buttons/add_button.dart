@@ -4,7 +4,10 @@ import 'package:flutter/material.dart';
 
 class AddButton extends StatelessWidget {
   final VoidCallback? onPressed;
-  void _onAddButtonPressed(BuildContext context) {
+
+  const AddButton({super.key, this.onPressed});
+
+  void _onAddButtonPressed() {
     if (onPressed != null) {
       onPressed!();
     } else {
@@ -15,7 +18,6 @@ class AddButton extends StatelessWidget {
     }
   }
 
-  const AddButton({super.key, this.onPressed});
   @override
   Widget build(BuildContext context) {
     return IconButton.filled(
@@ -29,7 +31,7 @@ class AddButton extends StatelessWidget {
         ),
       ),
       icon: Icon(CupertinoIcons.add, color: Colors.black, size: 24.0),
-      onPressed: () {  },
+      onPressed:  _onAddButtonPressed,
     );
     throw UnimplementedError();
   }

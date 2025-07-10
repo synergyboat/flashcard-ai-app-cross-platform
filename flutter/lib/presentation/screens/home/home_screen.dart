@@ -3,6 +3,7 @@ import 'package:flashcard/presentation/components/bars/flashcard_bottom_action_b
 import 'package:flashcard/presentation/components/buttons/add_button.dart';
 import 'package:flashcard/presentation/components/buttons/ai_button.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:logger/logger.dart';
 import '../../../core/config/di/config_di.dart';
 import '../../components/bars/flashcard_app_bar.dart';
@@ -23,10 +24,16 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       bottomNavigationBar: FlashcardBottomActionBar(
-          leading: AiButton(),
+          leading: AIButton(
+            onPressed: () {
+              _logger.i("AI button pressed");
+             context.go("/ai_generate_deck");
+            }
+          ),
         trailing: AddButton(
           onPressed: () {
-            _logger.i("Add button pressed");
+            _logger.i("AI button pressed");
+            context.go("/ai_generate_deck");
           })
       ),
       appBar: FlashcardAppBar(),
@@ -35,12 +42,11 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
             child: Stack(
               children: [
-                Expanded(
-                  child: Center(
-                    child: Text(
-                      "Your deck collection is empty.",
-                      style: TextStyle(fontSize: 14, color: Colors.black54),
-                    ),
+                Align(
+                  alignment: Alignment.center,
+                  child: Text(
+                    "Your deck collection is empty.",
+                    style: TextStyle(fontSize: 14, color: Colors.black54),
                   ),
                 ),
                 Align(

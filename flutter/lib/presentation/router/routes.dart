@@ -1,6 +1,7 @@
 import 'package:flashcard/presentation/screens/home/home_screen.dart';
 import 'package:go_router/go_router.dart';
 
+import '../screens/deck/ai_generate_deck_screen.dart';
 import '../screens/splash/splash_screen.dart';
 
 final List<GoRoute> routes = [
@@ -12,4 +13,8 @@ final List<GoRoute> routes = [
     name: 'home',
     path: '/home',
     builder: (context, state) => const HomeScreen()),
+  GoRoute(
+    name: 'ai_generate_deck',
+    path: '/ai_generate_deck',
+    builder: (context, state) => const AIGenerateDeckScreen()),
 ];

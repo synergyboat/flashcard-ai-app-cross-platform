@@ -3,14 +3,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-class AiButton extends StatelessWidget {
-  final VoidCallbackAction? onPressed;
+class AIButton extends StatelessWidget {
+  final VoidCallback? onPressed;
 
-  const AiButton({super.key, this.onPressed});
+  const AIButton({super.key, this.onPressed});
 
   void _onAddButtonPressed() {
     if (onPressed != null) {
-      onPressed!;
+      onPressed!();
     } else {
       if (kDebugMode) {
         print("Add button pressed");
