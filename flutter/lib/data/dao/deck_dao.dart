@@ -1,16 +1,19 @@
+import 'package:flashcard/data/entities/deck_db_entity.dart';
 import 'package:floor/floor.dart';
 
-@Entity(tableName: 'deck')
-class DeckDao {
-  @PrimaryKey(autoGenerate: true)
-  final int? id;
+abstract class DeckDao {
+  @Query('SELECT * FROM deck where id = :deckId')
+  Future<DeckDbEntity?> getDeckById(String deckId);
 
-  final String name;
-  final String description;
+  @insert
+  Future<void> createDEck(DeckDbEntity deck);
 
-  DeckDao({
-    this.id,
-    required this.name,
-    required this.description,
-  });
+  @Query('SELECT * FROM deck')
+  Future<List<DeckDbEntity>> getAllDecks();
+
+  @update
+  Future<void> updateDeck(DeckDbEntity deck);
+
+  @Query('DELETE FROM deck WHERE id = :deckId')
+  Future<void> deleteDeck(String deckId);
 }

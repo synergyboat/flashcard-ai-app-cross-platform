@@ -1,13 +1,9 @@
 import 'dart:convert';
-
-import 'package:flashcard/domain/entities/flashcard.dart';
 import 'package:flashcard/domain/repository/ai/ai_generator_repository.dart';
-
 import '../../entities/deck.dart';
 
 class GenerateDeckWithAIUseCase {
   final AIGeneratorRepository _aiRepository;
-
   GenerateDeckWithAIUseCase(
     this._aiRepository
   );
@@ -27,6 +23,7 @@ class GenerateDeckWithAIUseCase {
     }
     // Assuming the generated flashcards are in a format that can be parsed into a Deck
     Deck deck = Deck.fromJson(json.decode(response));
+    print("Generated deck: ${deck.toString()}");
     return deck;
   }
 }
