@@ -13,7 +13,7 @@ class AIPromptBuilderRepositoryImpl implements AIPromptBuilderRepository
   @override
   void setSystemPrompt(String prompt) {
     systemPrompt = OpenAIChatCompletionChoiceMessageModel(
-      role: OpenAIChatMessageRole.assistant,
+      role: OpenAIChatMessageRole.system,
       content: [
         OpenAIChatCompletionChoiceMessageContentItemModel.text(
             prompt

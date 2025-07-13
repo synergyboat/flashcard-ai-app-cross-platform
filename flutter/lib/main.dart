@@ -6,11 +6,14 @@ import 'package:flashcard/presentation/router/router.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import 'data/sources/database/database_initializer.dart';
+
 void main() async {
   BindingBase.debugZoneErrorsAreFatal = true;
   WidgetsFlutterBinding.ensureInitialized();
   await EnvService.config();
   configDi();
+  await DatabaseInitializer.initialize();
   OpenAiService.config(EnvService.getVariable('API_KEY') ?? '');
   runApp(const MyApp());
 }

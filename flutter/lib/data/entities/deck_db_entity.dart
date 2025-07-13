@@ -1,5 +1,5 @@
+import 'package:flashcard/core/utils/date_time_converter.dart';
 import 'package:floor/floor.dart';
-import 'flashcard_db_entity.dart'; // Ensure this path is relative if needed
 
 @Entity(tableName: 'deck')
 class DeckDbEntity {
@@ -7,16 +7,36 @@ class DeckDbEntity {
   final int? id;
 
   final String name;
-
   final String description;
 
-  @ignore
-  final List<FlashcardDbEntity> flashcard; // Used only for in-memory usage like `DeckWithFlashcards`
+  // Optional: Add created/updated timestamps
+  @TypeConverters([DateTimeConverter])
+  final DateTime? createdAt;
+  @TypeConverters([DateTimeConverter])
+  final DateTime? updatedAt;
 
   DeckDbEntity({
     this.id,
     required this.name,
     required this.description,
-    this.flashcard = const [],
+    this.createdAt,
+    this.updatedAt,
   });
+
+  // Helper method to create a copy with updated timestamp
+  DeckDbEntity copyWith({
+    int? id,
+    String? name,
+    String? description,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return DeckDbEntity(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
 }

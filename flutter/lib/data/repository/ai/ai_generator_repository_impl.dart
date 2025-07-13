@@ -22,7 +22,7 @@ class AIGeneratorRepositoryImpl implements AIGeneratorRepository {
       String prompt) async {
     AIPromptBuilderRepository<OpenAIChatCompletionChoiceMessageModel, List<OpenAIChatCompletionChoiceMessageModel>>
         promptBuilder = AIPromptBuilderRepositoryImpl();
-    promptBuilder.setSystemPrompt("Prompt: ${DEFAULT_AI_SYSTEM_PROMPT} \n Count of flashcards: $count \n");
+    promptBuilder.setSystemPrompt("Prompt: ${DEFAULT_AI_SYSTEM_PROMPT} \n Count of flashcards (strictly): $count \n");
     promptBuilder.setUserPrompt(prompt);
    return await openAiSource.sendRequestPrompt(promptBuilder.buildPrompt());
   }

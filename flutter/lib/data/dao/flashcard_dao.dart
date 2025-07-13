@@ -4,8 +4,17 @@ import 'package:floor/floor.dart';
 @dao
 abstract class FlashcardDao {
   @insert
-  Future<void> createFlashcard(String question, String answer);
+  Future<void> createFlashcard(FlashcardDbEntity flashcard);
 
   @Query('SELECT * FROM flashcard WHERE deckId = :deckId')
-  Future<List<FlashcardDbEntity>> getAllFlashcardsFromDeckId(String deckId);
+  Future<List<FlashcardDbEntity>> getAllFlashcardsFromDeckId(int deckId);
+
+  @update
+  Future<void> updateFlashcard(FlashcardDbEntity flashcard);
+
+  @delete
+  Future<void> deleteFlashcard(FlashcardDbEntity flashcard);
+
+  @Query('DELETE FROM flashcard WHERE id = :flashcardId')
+  Future<void> deleteFlashcardById(int flashcardId);
 }
