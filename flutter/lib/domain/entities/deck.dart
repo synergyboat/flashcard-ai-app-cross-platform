@@ -1,7 +1,7 @@
 import 'flashcard.dart';
 
 class Deck {
-  final String? id;
+  final int? id;
   final String? name;
   final String? description;
   final DateTime? createdAt;
@@ -40,7 +40,7 @@ class Deck {
 
   factory Deck.fromJson(Map<String, dynamic> json) {
     return Deck(
-      id: json['id'] as String?,
+      id: json['id'] as int?,
       name: json['name'] as String?,
       description: json['description'] as String?,
       createdAt: json['createdAt'] != null
@@ -52,6 +52,24 @@ class Deck {
       flashcards: (json['flashcards'] as List<dynamic>)
           .map((f) => Flashcard.fromJson(f as Map<String, dynamic>))
           .toList(),
+    );
+  }
+
+  Deck copyWith({
+    int? id,
+    String? name,
+    String? description,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    List<Flashcard>? flashcards,
+  }) {
+    return Deck(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      flashcards: flashcards ?? this.flashcards,
     );
   }
 }

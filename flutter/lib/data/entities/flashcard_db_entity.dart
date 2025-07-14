@@ -1,5 +1,6 @@
 import 'package:floor/floor.dart';
 import '../../core/utils/date_time_converter.dart';
+import '../../domain/entities/flashcard.dart';
 import 'deck_db_entity.dart';
 
 @Entity(
@@ -17,7 +18,7 @@ class FlashcardDbEntity {
   @PrimaryKey(autoGenerate: true)
   final int? id;
 
-  final int deckId;
+  final int? deckId;
   final String question;
   final String answer;
   @TypeConverters([DateTimeConverter])
@@ -55,6 +56,60 @@ class FlashcardDbEntity {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       lastReviewed: lastReviewed ?? this.lastReviewed,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'deckId': deckId,
+      'question': question,
+      'answer': answer,
+      'createdAt': createdAt?.toIso8601String(),
+      'updatedAt': updatedAt?.toIso8601String(),
+      'lastReviewed': lastReviewed?.toIso8601String(),
+    };
+  }
+
+  factory FlashcardDbEntity.fromJson(Map<String, dynamic> json) {
+    return FlashcardDbEntity(
+      id: json['id'] as int?,
+      deckId: json['deckId'] as int,
+      question: json['question'] as String,
+      answer: json['answer'] as String,
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'] as String)
+          : null,
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.parse(json['updatedAt'] as String)
+          : null,
+      lastReviewed: json['lastReviewed'] != null
+          ? DateTime.parse(json['lastReviewed'] as String)
+          : null,
+    );
+  }
+
+  factory FlashcardDbEntity.fromFlashcard(Flashcard flashcard) {
+    return FlashcardDbEntity(
+      id: flashcard.id,
+      deckId: flashcard.deckId,
+      question: flashcard.question,
+      answer: flashcard.answer,
+      createdAt: flashcard.createdAt,
+      updatedAt: flashcard.updatedAt,
+      lastReviewed: flashcard.lastReviewed,
+    );
+  }
+
+  Flashcard toFlashcard() {
+    return Flashcard(
+      id: id,
+      deckId: deckId,
+      question: question,
+      answer: answer,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+      lastReviewed: lastReviewed,
     );
   }
 }

@@ -1,6 +1,6 @@
 class Flashcard {
-  final String? id;
-  final String? deckId;
+  final int? id;
+  final int? deckId;
   final String question;
   final String answer;
   final DateTime? createdAt;
@@ -37,8 +37,8 @@ class Flashcard {
 
   factory Flashcard.fromJson(Map<String, dynamic> json) {
     return Flashcard(
-      id: json['id'] as String?,
-      deckId: json['deckId'] as String?,
+      id: json['id'] as int?,
+      deckId: json['deckId'] as int?,
       question: json['question'] as String,
       answer: json['answer'] as String,
       createdAt: json['createdAt'] != null
@@ -50,6 +50,26 @@ class Flashcard {
       lastReviewed: json['lastReviewed'] != null
           ? DateTime.parse(json['lastReviewed'] as String)
           : null
+    );
+  }
+
+  Flashcard copyWith({
+    int? id,
+    int? deckId,
+    String? question,
+    String? answer,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    DateTime? lastReviewed,
+  }) {
+    return Flashcard(
+      id: id ?? this.id,
+      deckId: deckId ?? this.deckId,
+      question: question ?? this.question,
+      answer: answer ?? this.answer,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      lastReviewed: lastReviewed ?? this.lastReviewed,
     );
   }
 }
