@@ -31,7 +31,7 @@ class FlashcardAppBar extends StatelessWidget implements PreferredSizeWidget {
       child: Padding(padding: EdgeInsets.only(top: topPadding) ,
           child: Stack(
             children: [
-              Expanded(child: Center(child: Text(titleText, style: TextStyle(color: Colors.black45),))),
+              Center(child: Text(titleText, style: TextStyle(color: Colors.black45),)),
               Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
