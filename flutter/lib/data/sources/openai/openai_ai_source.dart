@@ -11,7 +11,7 @@ class OpenAISource {
       seed: 6,
       messages: prompt,
       temperature: 0.3,
-      maxTokens: 500,
+      maxTokens: 1000,
     );
     return chatCompletion.choices.first.message.content?[0].text;
   }

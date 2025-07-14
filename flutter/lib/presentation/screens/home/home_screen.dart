@@ -27,13 +27,13 @@ class _HomeScreenState extends State<HomeScreen> {
           leading: AIButton(
             onPressed: () {
               _logger.i("AI button pressed");
-             context.go("/ai_generate_deck");
+             context.push("/ai_generate_deck");
             }
           ),
         trailing: AddButton(
           onPressed: () {
             _logger.i("AI button pressed");
-            context.go("/ai_generate_deck");
+            context.push("/ai_generate_deck");
           })
       ),
       appBar: FlashcardAppBar(),

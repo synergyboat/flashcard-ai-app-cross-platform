@@ -7,13 +7,12 @@ import '../../entities/flashcard_db_entity.dart';
 class DatabaseInitializer {
   static Future<void> initialize() async {
     try {
-      // Initialize the database
       final database = await LocalDatabaseService.database;
 
       if (kDebugMode) {
         print('Database initialized successfully');
 
-        // Optional: Add sample data in debug mode
+        //TODO: Remove this in production
         await _addSampleData(database);
       }
 
@@ -25,13 +24,12 @@ class DatabaseInitializer {
     }
   }
 
+  // TODO: Remove this method in production
   static Future<void> _addSampleData(LocalAppDatabase database) async {
     try {
-      // Check if we already have data
       final existingDecks = await database.deckDao.getAllDecks();
 
       if (existingDecks.isEmpty) {
-        // Create sample deck
         final sampleDeck = DeckDbEntity(
           name: 'Sample Deck',
           description: 'A sample deck with basic flashcards',
@@ -40,12 +38,8 @@ class DatabaseInitializer {
         );
 
         await database.deckDao.createDeck(sampleDeck);
-
-        // Get the created deck to get its ID
         final createdDecks = await database.deckDao.getAllDecks();
         final deckId = createdDecks.first.id!;
-
-        // Create sample flashcards
         final sampleFlashcards = [
           FlashcardDbEntity(
             deckId: deckId,
@@ -66,7 +60,6 @@ class DatabaseInitializer {
         for (final flashcard in sampleFlashcards) {
           await database.flashcardDao.createFlashcard(flashcard);
         }
-
         if (kDebugMode) {
           print('Sample data added successfully');
         }

@@ -2,9 +2,11 @@ import 'package:flashcard/domain/use_case/ai/generate_deck_with_ai_use_case.dart
 import 'package:flashcard/presentation/components/bars/flashcard_app_bar.dart';
 import 'package:flashcard/presentation/components/buttons/gradient_button.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:logger/logger.dart';
 
 import '../../../core/config/di/config_di.dart';
+import '../../../domain/entities/deck.dart';
 
 class AIGenerateDeckScreen extends StatefulWidget {
   const AIGenerateDeckScreen({super.key});
@@ -76,10 +78,18 @@ class _AIGenerateDeckScreenState extends State<AIGenerateDeckScreen> {
                             ),
                           ),
                           const SizedBox(height: 64.0),
-                          GradientButton(text: "Generate Deck", onPressed: (){
-                            _generateDeckWithAIUseCase(
+                          GradientButton(text: "Generate Deck", onPressed: () async {
+                            Deck deck = await _generateDeckWithAIUseCase(
                               prompt: _promptText
                             );
+                            _logger.i("Deck generated with prompt: $_promptText");
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text("Deck generated successfully!"),
+                                duration: Duration(seconds: 2),
+                              )
+                            );
+                            context.pushNamed("deck", extra: deck);
                           })
                         ],
                       ),

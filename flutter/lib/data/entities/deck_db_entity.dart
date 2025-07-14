@@ -9,7 +9,6 @@ class DeckDbEntity {
   final String name;
   final String description;
 
-  // Optional: Add created/updated timestamps
   @TypeConverters([DateTimeConverter])
   final DateTime? createdAt;
   @TypeConverters([DateTimeConverter])
@@ -23,7 +22,6 @@ class DeckDbEntity {
     this.updatedAt,
   });
 
-  // Helper method to create a copy with updated timestamp
   DeckDbEntity copyWith({
     int? id,
     String? name,

@@ -1,5 +1,6 @@
 import 'package:flashcard/core/utils/navigation_helper.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class FlashcardAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Widget? leadingWidget;
@@ -28,7 +29,28 @@ class FlashcardAppBar extends StatelessWidget implements PreferredSizeWidget {
     return SizedBox(
       height: preferredSize.height + topPadding + 24,
       child: Padding(padding: EdgeInsets.only(top: topPadding) ,
-          child: Center(child: Text(titleText, style: TextStyle(color: Colors.black45),))),
+          child: Stack(
+            children: [
+              Expanded(child: Center(child: Text(titleText, style: TextStyle(color: Colors.black45),))),
+              Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    ?(leadingWidget == null)? (context.canPop())?
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back, color: Colors.black45),
+                        onPressed: () {
+                          // Navigate back to the previous screen
+                          context.pop();
+                        },
+                      )
+                        : null
+                  : leadingWidget!,
+                  actions != null? leadingWidget!
+                      : const SizedBox(width: 16.0, height: 16.0,)
+                ],
+              ),
+            ],
+          )),
     );
   }
 

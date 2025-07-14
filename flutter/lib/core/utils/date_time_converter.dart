@@ -1,4 +1,3 @@
-// Create a type converter
 import 'package:floor/floor.dart';
 
 class DateTimeConverter extends TypeConverter<DateTime?, int?> {
