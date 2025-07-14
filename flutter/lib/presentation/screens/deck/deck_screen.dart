@@ -101,7 +101,6 @@ class _DeckScreenState extends State<DeckScreen> with TickerProviderStateMixin {
                   double adjustedScale = baseScale;
 
                   if (isSecondCard) {
-                    // Interpolate second card's scale from baseScale -> 1.0
                     double progress = (_dragOffset.abs() / 150).clamp(0.0, 1.0);
                     adjustedScale = baseScale + (1.0 - baseScale - 0.05) * progress;
                   }
