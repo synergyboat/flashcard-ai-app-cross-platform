@@ -12,7 +12,7 @@ void main() async {
   BindingBase.debugZoneErrorsAreFatal = true;
   WidgetsFlutterBinding.ensureInitialized();
   await EnvService.config();
-  configDi();
+  await configDi();
   await DatabaseInitializer.initialize();
   OpenAiService.config(EnvService.getVariable('API_KEY') ?? '');
   runApp(const MyApp());

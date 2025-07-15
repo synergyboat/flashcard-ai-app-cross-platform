@@ -1,7 +1,11 @@
 import 'dart:math';
+import 'package:flashcard/core/utils/navigation_helper.dart';
+import 'package:flashcard/domain/entities/deck.dart';
+import 'package:flashcard/domain/use_case/deck/get_all_decks_use_case.dart';
 import 'package:flashcard/presentation/components/bars/flashcard_bottom_action_bar.dart';
 import 'package:flashcard/presentation/components/buttons/add_button.dart';
 import 'package:flashcard/presentation/components/buttons/ai_button.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:logger/logger.dart';
@@ -17,8 +21,40 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-
+  final GetAllDecksUseCase _getAllDecksUseCase = getIt<GetAllDecksUseCase>();
   final Logger _logger = getIt<Logger>();
+  List<Deck> decks = [];
+
+  void _refresh(){
+    if (kDebugMode){
+      _logger.i("Refreshing decks");
+    }
+    _getAllDecksUseCase().then((value) {
+      setState(() {
+        decks = value;
+      });
+    }).catchError((error) {
+      _logger.e("Error fetching decks: $error");
+    });
+  }
+
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   // This runs when the widget is first created
+  //   _refresh();
+  // }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // This will be called when the route changes
+    final currentRoute = getCurrentRouteName(context);
+    if (currentRoute == 'home') {
+      _refresh();
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +81,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Align(
                   alignment: Alignment.center,
                   child: Text(
-                    "Your deck collection is empty.",
+                    decks.toString(),
                     style: TextStyle(fontSize: 14, color: Colors.black54),
                   ),
                 ),
