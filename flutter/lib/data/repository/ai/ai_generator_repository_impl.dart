@@ -16,14 +16,14 @@ class AIGeneratorRepositoryImpl implements AIGeneratorRepository {
   });
 
   @override
-  Future<dynamic> generateDeck(
+  Future<String?> generateDeck(
       String? deckId,
       int count,
       String prompt) async {
     AIPromptBuilderRepository<OpenAIChatCompletionChoiceMessageModel, List<OpenAIChatCompletionChoiceMessageModel>>
         promptBuilder = AIPromptBuilderRepositoryImpl();
     promptBuilder.setSystemPrompt(DEFAULT_AI_SYSTEM_PROMPT);
-    promptBuilder.setUserPrompt(prompt);
+    promptBuilder.setUserPrompt("Topic: ${prompt} \n\n Number of flashcards to generate, strictly: $count");
    return await openAiSource.sendRequestPrompt(promptBuilder.buildPrompt());
   }
 }

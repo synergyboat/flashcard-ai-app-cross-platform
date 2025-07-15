@@ -1,12 +1,15 @@
 import 'package:flashcard/domain/entities/flashcard.dart';
 
 abstract class FlashcardRepository {
-  Future<void> addFlashcard(String deckId, String question, String answer);
-  Future<void> updateFlashcard(String flashcardId, String question, String answer);
-  Future<void> deleteFlashcard(String flashcardId);
-  Future<void> deleteFlashcardsByDeck(String deckId);
+  Future<void> addFlashcardToDeck(int deckId, Flashcard flashcard);
+  Future<void> updateFlashcard(Flashcard updatedFlashcard);
 
-  Future<List<Map<String, Flashcard>>> getFlashcardsByDeck(String deckId);
-  Future<Map<String, Flashcard>> getFlashcardById(String flashcardId);
-  Future<List<Map<String, Flashcard>>> getAllFlashcards();
+  Future<void> deleteFlashcard(Flashcard flashcard);
+  Future<void> deleteFlashcardById(int flashcardId);
+  Future<void> deleteFlashcardsByDeckId(int deckId);
+
+  Future<List<Flashcard>> getFlashcardsByDeckId(int deckId);
+  Future<Flashcard> getFlashcardById(int flashcardId);
+
+  Future<List<Flashcard>> getAllFlashcards();
 }

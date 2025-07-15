@@ -10,9 +10,9 @@ class OpenAISource {
       responseFormat: {"type": "json_object"},
       seed: 6,
       messages: prompt,
-      temperature: 0.2,
-      maxTokens: 500,
+      temperature: 0.3,
+      maxTokens: 1000,
     );
-    return chatCompletion.choices.first.message.toString();
+    return chatCompletion.choices.first.message.content?[0].text;
   }
 }
