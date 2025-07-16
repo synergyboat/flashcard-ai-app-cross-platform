@@ -140,15 +140,19 @@ class _DeckPreviewScreenState extends State<DeckPreviewScreen> with TickerProvid
                       }
 
                       Widget card = Container(
-                        height: constraints.maxHeight - 100,
+                        height: constraints.maxHeight - 0,
                         width: constraints.maxWidth,
                         decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Colors.grey.shade300,
+                            width: 1.0,
+                          ),
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(64.0),
                           boxShadow: const [
                             BoxShadow(
                               color: Colors.black26,
-                              blurRadius: 8,
+                              blurRadius: 10,
                               offset: Offset(0, 4),
                             ),
                           ],
@@ -213,7 +217,6 @@ class _DeckPreviewScreenState extends State<DeckPreviewScreen> with TickerProvid
                       }
                     }).reversed.toList(),
                   ),
-                  const SizedBox(height: 64.0),
                 ],
               );
             },
