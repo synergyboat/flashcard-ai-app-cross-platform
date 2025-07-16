@@ -10,7 +10,7 @@ abstract class DeckDao {
   Future<DeckDbEntity?> getDeckById(int deckId);
 
   @insert
-  Future<void> createDeck(DeckDbEntity deck);
+  Future<int> createDeck(DeckDbEntity deck);
 
   @Query('SELECT * FROM deck')
   Future<List<DeckDbEntity>> getAllDecks();
@@ -27,11 +27,35 @@ abstract class DeckDao {
   @delete
   Future<void> deleteDeckEntity(DeckDbEntity deck);
 
-  Future<DeckWithFlashcardsDbEntity?> getDeckWithFlashcards(int deckId) async {
-    final deck = await getDeckById(deckId);
-    if (deck == null) return null;
+  @insert
+  Future<void> addMultipleFlashcardsToDeck(List<FlashcardDbEntity> flashcards);
 
-    final flashcards = await getFlashcardsByDeckId(deckId);
-    return DeckWithFlashcardsDbEntity(deck, flashcards);
+  @transaction
+  Future<int> createDeckWithFlashcards(
+      DeckDbEntity deck,
+      List<FlashcardDbEntity> flashcards,
+      ) async {
+    final int deckId = await createDeck(deck);
+
+    final flashcardsWithDeckId = flashcards
+        .map((fc) => fc.copyWith(deckId: deckId))
+        .toList();
+
+    await addMultipleFlashcardsToDeck(flashcardsWithDeckId);
+    return deckId;
+  }
+
+  @transaction
+  Future<List<DeckWithFlashcardsDbEntity>> getAllDeckWithFlashcards() async {
+    final decks = await getAllDecks();
+    final List<DeckWithFlashcardsDbEntity> decksWithFlashcards = [];
+
+    for (final deck in decks) {
+      final flashcards = await getFlashcardsByDeckId(deck.id!);
+      if (flashcards.isNotEmpty) {
+        decksWithFlashcards.add(DeckWithFlashcardsDbEntity(deck, flashcards));
+      }
+    }
+    return decksWithFlashcards;
   }
 }

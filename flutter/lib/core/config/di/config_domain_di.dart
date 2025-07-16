@@ -13,4 +13,5 @@ void configDomainDi() {
   getIt.registerSingleton<GenerateDeckWithAIUseCase>(GenerateDeckWithAIUseCase(getIt<AIGeneratorRepository>()));
   getIt.registerSingleton<GetAllDecksUseCase>(GetAllDecksUseCase(getIt<DeckRepository>()));
   getIt.registerSingleton<CreateNewDeckUseCase>(CreateNewDeckUseCase(getIt<DeckRepository>()));
+  getIt.registerSingleton<GetFlashcardsFromDeckUseCase>(GetFlashcardsFromDeckUseCase(getIt<FlashcardRepository>()));
 }

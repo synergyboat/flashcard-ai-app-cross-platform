@@ -1,6 +1,4 @@
-import 'dart:math';
 
-import 'package:flashcard/core/utils/random_gradient_generator.dart';
 import 'package:flashcard/presentation/components/cards/deck_card.dart';
 import 'package:flutter/material.dart';
 

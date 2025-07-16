@@ -35,7 +35,7 @@ class FlashcardAppBar extends StatelessWidget implements PreferredSizeWidget {
               Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    ?(leadingWidget == null)? (context.canPop())?
+                    (leadingWidget == null)? (context.canPop())?
                       IconButton(
                         icon: const Icon(Icons.arrow_back, color: Colors.black45),
                         onPressed: () {
@@ -43,7 +43,7 @@ class FlashcardAppBar extends StatelessWidget implements PreferredSizeWidget {
                           context.pop();
                         },
                       )
-                        : null
+                        : const SizedBox(width: 16.0, height: 16.0,)
                   : leadingWidget!,
                   actions != null? leadingWidget!
                       : const SizedBox(width: 16.0, height: 16.0,)

@@ -1,5 +1,4 @@
 import 'package:flashcard/domain/use_case/ai/generate_deck_with_ai_use_case.dart';
-import 'package:flashcard/domain/use_case/deck/create_new_deck_use_case.dart';
 import 'package:flashcard/presentation/components/bars/flashcard_app_bar.dart';
 import 'package:flashcard/presentation/components/buttons/gradient_button.dart';
 import 'package:flutter/material.dart';

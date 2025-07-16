@@ -1,4 +1,5 @@
 import 'package:flashcard/domain/use_case/deck/create_new_deck_use_case.dart';
+import 'package:flashcard/domain/use_case/deck/get_flashcards_from_deck_use_case.dart';
 import 'package:flashcard/presentation/components/bars/empty_bottom_action_bar.dart';
 import 'package:flashcard/presentation/components/bars/flashcard_app_bar.dart';
 import 'package:flashcard/presentation/components/buttons/gradient_button.dart';
@@ -21,9 +22,10 @@ class DeckPreviewScreen extends StatefulWidget {
 
 class _DeckPreviewScreenState extends State<DeckPreviewScreen> with TickerProviderStateMixin {
   late final Deck deck = widget.deck;
-  late final List<Flashcard> flashcards = List.from(deck.flashcards);
   final CreateNewDeckUseCase _createNewDeckUseCase = getIt<CreateNewDeckUseCase>();
   final Logger _logger = getIt<Logger>();
+  late final List<Flashcard> _flashcards = deck.flashcards;
+
   int currentIndex = 0;
 
   late AnimationController _swipeController;
@@ -33,7 +35,7 @@ class _DeckPreviewScreenState extends State<DeckPreviewScreen> with TickerProvid
   @override
   void initState() {
     super.initState();
-
+    // _flashcards = deck.flashcards;
     _logger.i("The deck is: ${deck.toString()}");
     _swipeController = AnimationController(
       vsync: this,
@@ -59,7 +61,7 @@ class _DeckPreviewScreenState extends State<DeckPreviewScreen> with TickerProvid
     final isForward = _dragOffset < -swipeThreshold;
     final isBackward = _dragOffset > swipeThreshold;
 
-    if (isForward && currentIndex < flashcards.length - 1) {
+    if (isForward && currentIndex < _flashcards.length - 1) {
       _animateSwipe(() {
         setState(() => currentIndex++);
       });
@@ -122,9 +124,9 @@ class _DeckPreviewScreenState extends State<DeckPreviewScreen> with TickerProvid
                     alignment: Alignment.center,
                     children: List.generate(3, (i) {
                       int index = currentIndex + i;
-                      if (index >= flashcards.length) return const SizedBox.shrink();
+                      if (index >= _flashcards.length) return const SizedBox.shrink();
 
-                      final flashcard = flashcards[index];
+                      final flashcard = _flashcards[index];
                       bool isTopCard = i == 0;
                       bool isSecondCard = i == 1;
                       double topOffset = i * -12.0;
@@ -172,7 +174,7 @@ class _DeckPreviewScreenState extends State<DeckPreviewScreen> with TickerProvid
                               ),
                               const SizedBox(height: 40),
                               Text(
-                                'Card ${index + 1} of ${flashcards.length}',
+                                'Card ${index + 1} of ${_flashcards.length}',
                                 style: const TextStyle(fontSize: 14, color: Colors.grey),
                               ),
                             ],

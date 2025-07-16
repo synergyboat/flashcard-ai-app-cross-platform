@@ -6,7 +6,6 @@ import '../../sources/database/local/local_database_service.dart';
 
 class FlashcardRepositoryImpl implements FlashcardRepository{
 
-  // You can inject a local database service or any other data source here
   final LocalAppDatabase _localDatabaseService;
 
   const FlashcardRepositoryImpl(
@@ -15,13 +14,26 @@ class FlashcardRepositoryImpl implements FlashcardRepository{
 
   @override
   Future<void> addFlashcardToDeck(int deckId, Flashcard flashcard) {
-    // Ensure the flashcard is associated with the correct deck
     final flashcardWithDeck = flashcard.copyWith(deckId: deckId);
     return _localDatabaseService.flashcardDao.createFlashcard(
       FlashcardDbEntity.fromFlashcard(
         flashcardWithDeck,
       ),
     );
+  }
+
+  @override
+  Future<void> addMultipleFlashcardsToDeck(int deckId, List<Flashcard> flashcards) async {
+     List<FlashcardDbEntity> flashcardEntities = flashcards.map((flashcard) {
+      return FlashcardDbEntity.fromFlashcard(flashcard.copyWith(deckId: deckId));
+    }).toList();
+
+     for (final flashcardDbEntity in flashcardEntities) {
+       if (flashcardDbEntity.deckId == null) {
+         throw Exception("Deck ID is null for flashcard: ${flashcardDbEntity.question}");
+       }
+       await _localDatabaseService.flashcardDao.createFlashcard(flashcardDbEntity);
+     }
   }
 
   @override

@@ -1,3 +1,5 @@
+import 'package:flashcard/domain/repository/flashcard_repository.dart';
+
 import '../../entities/deck.dart';
 import '../../repository/deck_repository.dart';
 
@@ -6,7 +8,7 @@ class CreateNewDeckUseCase {
 
   CreateNewDeckUseCase(this._deckRepository);
 
-  Future<void> call(Deck deck) async {
-    await _deckRepository.addDeck(deck);
+  Future<int> call(Deck deck) async {
+    return await _deckRepository.addDeck(deck);
   }
 }
