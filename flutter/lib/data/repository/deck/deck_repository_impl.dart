@@ -1,4 +1,5 @@
 import 'package:flashcard/data/entities/deck_db_entity.dart';
+import 'package:flashcard/data/entities/deck_with_flashcard.dart';
 import 'package:flashcard/data/sources/database/local/local_database_service.dart';
 
 import '../../../domain/entities/deck.dart';

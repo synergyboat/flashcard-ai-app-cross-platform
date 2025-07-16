@@ -1,28 +1,29 @@
 import 'package:flashcard/domain/use_case/deck/create_new_deck_use_case.dart';
 import 'package:flashcard/presentation/components/bars/empty_bottom_action_bar.dart';
 import 'package:flashcard/presentation/components/bars/flashcard_app_bar.dart';
-import 'package:flashcard/presentation/components/bars/flashcard_bottom_action_bar.dart';
 import 'package:flashcard/presentation/components/buttons/gradient_button.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:logger/logger.dart';
 
 import '../../../core/config/di/config_di.dart';
 import '../../../domain/entities/deck.dart';
 import '../../../domain/entities/flashcard.dart';
 import 'dart:math';
 
-class DeckScreen extends StatefulWidget {
+class DeckPreviewScreen extends StatefulWidget {
   final Deck deck;
-  const DeckScreen({super.key, required this.deck});
+  const DeckPreviewScreen({super.key, required this.deck});
 
   @override
-  State<DeckScreen> createState() => _DeckScreenState();
+  State<DeckPreviewScreen> createState() => _DeckPreviewScreenState();
 }
 
-class _DeckScreenState extends State<DeckScreen> with TickerProviderStateMixin {
+class _DeckPreviewScreenState extends State<DeckPreviewScreen> with TickerProviderStateMixin {
   late final Deck deck = widget.deck;
   late final List<Flashcard> flashcards = List.from(deck.flashcards);
   final CreateNewDeckUseCase _createNewDeckUseCase = getIt<CreateNewDeckUseCase>();
+  final Logger _logger = getIt<Logger>();
   int currentIndex = 0;
 
   late AnimationController _swipeController;
@@ -32,6 +33,8 @@ class _DeckScreenState extends State<DeckScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+
+    _logger.i("The deck is: ${deck.toString()}");
     _swipeController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
@@ -92,17 +95,19 @@ class _DeckScreenState extends State<DeckScreen> with TickerProviderStateMixin {
       bottomNavigationBar: EmptyBottomActionBar(
         child:  GradientButton(
             text: "Save Deck",
-            onPressed: () async {
-              await _createNewDeckUseCase(deck);
-              ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text("Flashcard added successfully!"),
-                    duration: Duration(seconds: 2),
-                  )
-              );
-              if (mounted) {
-                context.go("/home");
-              }
+            onPressed: ()=>{
+              _createNewDeckUseCase(deck)
+              .then((value){
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Flashcard added successfully!"),
+                        duration: Duration(seconds: 2),
+                      )
+                  );
+                  context.go("/home");
+                }
+              })
             }
         ),
       ),
@@ -152,7 +157,7 @@ class _DeckScreenState extends State<DeckScreen> with TickerProviderStateMixin {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                flashcard.question ?? "No Question",
+                                flashcard.question,
                                 style: const TextStyle(
                                   fontSize: 22,
                                   fontWeight: FontWeight.bold,
@@ -161,7 +166,7 @@ class _DeckScreenState extends State<DeckScreen> with TickerProviderStateMixin {
                               ),
                               const SizedBox(height: 20),
                               Text(
-                                flashcard.answer ?? "No Answer",
+                                flashcard.answer,
                                 style: const TextStyle(fontSize: 18),
                                 textAlign: TextAlign.center,
                               ),

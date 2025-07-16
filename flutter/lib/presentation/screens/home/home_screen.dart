@@ -5,6 +5,7 @@ import 'package:flashcard/domain/use_case/deck/get_all_decks_use_case.dart';
 import 'package:flashcard/presentation/components/bars/flashcard_bottom_action_bar.dart';
 import 'package:flashcard/presentation/components/buttons/add_button.dart';
 import 'package:flashcard/presentation/components/buttons/ai_button.dart';
+import 'package:flashcard/presentation/components/containers/deck_collection_grid.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -76,31 +77,31 @@ class _HomeScreenState extends State<HomeScreen> {
       body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-            child: Stack(
-              children: [
-                Align(
-                  alignment: Alignment.center,
-                  child: Text(
-                    decks.toString(),
-                    style: TextStyle(fontSize: 14, color: Colors.black54),
-                  ),
+            child: (decks.isEmpty)?
+                Stack(
+            children: [
+              Center(
+                child: Text(
+                  "No decks found. Create a new deck to get started.",
+                  style: TextStyle(fontSize: 16, color: Colors.black54),
                 ),
-                Align(
-                  alignment: Alignment.bottomCenter,
-                  child: IntrinsicHeight(
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Align(
-                            alignment: Alignment.centerLeft,
-                            child: Column(
-                              children: [
-                                Text(
-                                  "Generate using AI",
-                                  style: TextStyle(fontSize: 14, color: Colors.black38),
-                                ),
-                                const SizedBox(height: 16),
-                                Transform(
+              ),
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: IntrinsicHeight(
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Column(
+                            children: [
+                              Text(
+                                "Generate using AI",
+                                style: TextStyle(fontSize: 14, color: Colors.black38),
+                              ),
+                              const SizedBox(height: 16),
+                              Transform(
                                   alignment: Alignment.center,
                                   transform: Matrix4.identity()
                                     ..rotateZ(pi / 2.5),
@@ -116,43 +117,54 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ),
                                     ],
                                   )
-                                )
-                              ],
-                            ),
+                              )
+                            ],
                           ),
                         ),
-                        Expanded(
-                          child: Align(
-                            alignment: Alignment.centerRight,
-                            child: Column(
-                              children: [
-                                Text(
-                                  "Create deck manually",
-                                  style: TextStyle(fontSize: 14, color: Colors.black38),
-                                ),
-                                const SizedBox(height: 16),
-                                Transform(
-                                    alignment: Alignment.center,
-                                    transform: Matrix4.identity()
-                                      ..scale(-1.0, 1.0)
-                                      ..rotateZ(pi / 2.5),
-                                    child: Opacity(
-                                      opacity: 0.25,
-                                      child: SvgPicture.asset(
-                                        'assets/svg/curved-arrow.svg',
-                                        height: 80,
-                                        semanticsLabel: 'Squiggly Arrow',
-                                      ),
-                                    )
-                                )
-                              ],
-                            ),
+                      ),
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Column(
+                            children: [
+                              Text(
+                                "Create deck manually",
+                                style: TextStyle(fontSize: 14, color: Colors.black38),
+                              ),
+                              const SizedBox(height: 16),
+                              Transform(
+                                  alignment: Alignment.center,
+                                  transform: Matrix4.identity()
+                                    ..scale(-1.0, 1.0)
+                                    ..rotateZ(pi / 2.5),
+                                  child: Opacity(
+                                    opacity: 0.25,
+                                    child: SvgPicture.asset(
+                                      'assets/svg/curved-arrow.svg',
+                                      height: 80,
+                                      semanticsLabel: 'Squiggly Arrow',
+                                    ),
+                                  )
+                              )
+                            ],
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
+                ),
+              )
+            ]
                 )
+            :
+            Stack(
+              children: [
+                Align(
+                  alignment: Alignment.center,
+                  child: DeckCollectionGrid(decks: decks, onDeckSelected: (Deck deck)=>{
+                    context.pushNamed("deck", extra: deck)
+                  }),
+                ),
               ],
             )
           )
