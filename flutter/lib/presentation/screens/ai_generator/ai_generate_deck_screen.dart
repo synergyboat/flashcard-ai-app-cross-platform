@@ -89,7 +89,9 @@ class _AIGenerateDeckScreenState extends State<AIGenerateDeckScreen> {
                                 duration: Duration(seconds: 2),
                               )
                             );
-                            context.pushNamed("deck", extra: deck);
+                            if (mounted){
+                              context.pushNamed("deck_preview", extra: deck);
+                            }
                           })
                         ],
                       ),

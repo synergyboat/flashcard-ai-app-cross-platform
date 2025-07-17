@@ -1,7 +1,7 @@
 import '../entities/deck.dart';
 
 abstract class DeckRepository {
-  Future<void> addDeck(Deck deck);
+  Future<int> addDeck(Deck deck);
   Future<void> updateDeck(Deck updatedDeck);
 
   Future<void> deleteDeckById(Deck deck);
@@ -9,5 +9,6 @@ abstract class DeckRepository {
   Future<void> deleteAllDecks();
 
   Future<List<Deck>> getAllDecks();
+  Future<List<Deck>> getAllDecksWithFlashcards();
   Future<Deck> getDeckById(int deckId);
 }

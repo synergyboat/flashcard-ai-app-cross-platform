@@ -1,4 +1,3 @@
-import 'package:dart_openai/dart_openai.dart';
 import 'package:flashcard/core/config/di/config_di.dart';
 import 'package:flashcard/core/config/services/env_service.dart';
 import 'package:flashcard/core/config/services/openai_service.dart';
@@ -12,7 +11,7 @@ void main() async {
   BindingBase.debugZoneErrorsAreFatal = true;
   WidgetsFlutterBinding.ensureInitialized();
   await EnvService.config();
-  configDi();
+  await configDi();
   await DatabaseInitializer.initialize();
   OpenAiService.config(EnvService.getVariable('API_KEY') ?? '');
   runApp(const MyApp());

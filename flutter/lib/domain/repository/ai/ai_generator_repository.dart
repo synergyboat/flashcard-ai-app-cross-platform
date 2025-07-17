@@ -1,5 +1,3 @@
-import '../../entities/flashcard.dart';
-import 'ai_prompt_builder_repository.dart';
 
 abstract class AIGeneratorRepository {
   /// Generates a flashcard based on the provided prompt and adds it to the specified deck.

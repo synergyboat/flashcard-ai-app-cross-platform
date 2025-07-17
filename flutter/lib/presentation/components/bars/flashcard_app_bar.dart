@@ -31,23 +31,26 @@ class FlashcardAppBar extends StatelessWidget implements PreferredSizeWidget {
       child: Padding(padding: EdgeInsets.only(top: topPadding) ,
           child: Stack(
             children: [
-              Center(child: Text(titleText, style: TextStyle(color: Colors.black45),)),
-              Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    ?(leadingWidget == null)? (context.canPop())?
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back, color: Colors.black45),
-                        onPressed: () {
-                          // Navigate back to the previous screen
-                          context.pop();
-                        },
-                      )
-                        : null
-                  : leadingWidget!,
-                  actions != null? leadingWidget!
-                      : const SizedBox(width: 16.0, height: 16.0,)
-                ],
+              Center(child: Text(titleText, style: TextStyle(color: Colors.black87),)),
+              SizedBox(
+                height: height,
+                child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      (leadingWidget == null)? (context.canPop())?
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back, color: Colors.black87),
+                          onPressed: () {
+                            // Navigate back to the previous screen
+                            context.pop();
+                          },
+                        )
+                          : const SizedBox(width: 16.0, height: 16.0,)
+                    : leadingWidget!,
+                    actions != null? leadingWidget!
+                        : const SizedBox(width: 16.0, height: 16.0,)
+                  ],
+                ),
               ),
             ],
           )),
