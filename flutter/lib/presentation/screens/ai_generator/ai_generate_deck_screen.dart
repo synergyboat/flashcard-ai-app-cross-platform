@@ -90,7 +90,7 @@ class _AIGenerateDeckScreenState extends State<AIGenerateDeckScreen> {
                               )
                             );
                             if (mounted){
-                              context.pushNamed("deck", extra: deck);
+                              context.pushNamed("deck_preview", extra: deck);
                             }
                           })
                         ],
