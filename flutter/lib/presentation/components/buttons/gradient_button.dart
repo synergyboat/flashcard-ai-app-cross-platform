@@ -5,6 +5,7 @@ class GradientButton extends StatelessWidget {
   final VoidCallback onPressed;
   final double width;
   final double height;
+  final Icon? icon;
 
   const GradientButton({
     super.key,
@@ -12,6 +13,7 @@ class GradientButton extends StatelessWidget {
     required this.onPressed,
     this.width = 200.0,
     this.height = 50.0,
+    this.icon,
   });
 
   @override
@@ -20,6 +22,14 @@ class GradientButton extends StatelessWidget {
       width: width,
       height: height,
       decoration: BoxDecoration(
+        boxShadow: [
+          BoxShadow(
+            color: Colors.blueAccent.withValues(alpha: 0.4),
+            spreadRadius: 5,
+            blurRadius: 16,
+            offset: Offset(0, 4), // changes position of shadow
+          ),
+        ],
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
@@ -29,9 +39,19 @@ class GradientButton extends StatelessWidget {
       ),
       child: TextButton(
         onPressed: onPressed,
-        child: Text(
-          text,
-          style: TextStyle(color: Colors.white, fontSize: 16.0),
+        child: Center(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (icon != null) ...[
+                icon!,
+              ],
+              Text(
+                text,
+                style: TextStyle(color: Colors.white, fontSize: 16.0),
+              ),
+            ],
+          ),
         ),
       ),
     );
