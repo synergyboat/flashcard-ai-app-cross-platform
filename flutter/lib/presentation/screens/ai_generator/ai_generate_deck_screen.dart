@@ -1,6 +1,7 @@
 import 'package:flashcard/domain/use_case/ai/generate_deck_with_ai_use_case.dart';
 import 'package:flashcard/presentation/components/bars/flashcard_app_bar.dart';
 import 'package:flashcard/presentation/components/buttons/gradient_button.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:logger/logger.dart';
@@ -20,6 +21,7 @@ class _AIGenerateDeckScreenState extends State<AIGenerateDeckScreen> {
   final Logger _logger = getIt<Logger>();
   String _promptText = "";
   final GenerateDeckWithAIUseCase _generateDeckWithAIUseCase = getIt<GenerateDeckWithAIUseCase>();
+  bool _isGenerating = false;
 
   @override
   Widget build(BuildContext context) {
@@ -78,21 +80,36 @@ class _AIGenerateDeckScreenState extends State<AIGenerateDeckScreen> {
                             ),
                           ),
                           const SizedBox(height: 64.0),
-                          GradientButton(text: "Generate Deck", onPressed: () async {
-                            Deck deck = await _generateDeckWithAIUseCase(
-                              prompt: _promptText
-                            );
-                            _logger.i("Deck generated with prompt: $_promptText");
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text("Deck generated successfully!"),
-                                duration: Duration(seconds: 2),
-                              )
-                            );
-                            if (mounted){
-                              context.pushNamed("deck_preview", extra: deck);
-                            }
-                          })
+                          Opacity(
+                            opacity: _isGenerating ? 0.5 : 1.0,
+                            child: GradientButton(
+                                text: "Generate Deck",
+                                icon: Icon(CupertinoIcons.sparkles, color: Colors.white),
+                                onPressed: () async {
+                                  if (_isGenerating){
+                                    return;
+                                  }
+                                  setState(() {
+                                    _isGenerating = true;
+                                  });
+                                  Deck deck = await _generateDeckWithAIUseCase(
+                                      prompt: _promptText
+                                  );
+                                  setState(() {
+                                    _isGenerating = false;
+                                  });
+                                  _logger.i("Deck generated with prompt: $_promptText");
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text("Deck generated successfully!"),
+                                        duration: Duration(seconds: 2),
+                                      )
+                                  );
+                                  if (mounted){
+                                    context.pushNamed("deck_preview", extra: deck);
+                                  }
+                                }),
+                          )
                         ],
                       ),
                     ),
