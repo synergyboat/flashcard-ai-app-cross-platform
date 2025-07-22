@@ -1,7 +1,7 @@
 
 import 'package:flashcard/presentation/components/cards/deck_card.dart';
 import 'package:flutter/material.dart';
-
+import 'dart:io' show Platform;
 import '../../../domain/entities/deck.dart';
 
 class DeckCollectionGrid extends StatelessWidget {
@@ -20,7 +20,7 @@ class DeckCollectionGrid extends StatelessWidget {
       children: [
         GridView.builder(
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount:2,
+            crossAxisCount: (Platform.isMacOS)?6:2,
             childAspectRatio: 0.85,
           ),
           itemCount: decks.length,

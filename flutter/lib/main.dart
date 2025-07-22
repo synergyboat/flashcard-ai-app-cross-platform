@@ -14,6 +14,7 @@ void main() async {
   await configDi();
   await DatabaseInitializer.initialize();
   OpenAiService.config(EnvService.getVariable('API_KEY') ?? '');
+  PerformanceOverlay.allEnabled();
   runApp(const MyApp());
 }
 
