@@ -64,6 +64,16 @@ class DeckDbEntity {
     };
   }
 
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'description': description,
+      'createdAt': createdAt?.toIso8601String(),
+      'updatedAt': updatedAt?.toIso8601String(),
+    };
+  }
+
   factory DeckDbEntity.fromDeck(Deck deck) {
     return DeckDbEntity(
       id: deck.id,

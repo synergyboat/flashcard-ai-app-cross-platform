@@ -14,6 +14,6 @@ Future<void> configDataDi() async {
   getIt.registerSingleton<OpenAISource>(OpenAISource());
   getIt.registerSingleton<LocalAppDatabase>(await LocalDatabaseService.database);
   getIt.registerSingleton<AIGeneratorRepository>(AIGeneratorRepositoryImpl(openAiSource: getIt<OpenAISource>()));
-  getIt.registerSingleton<DeckRepository>(DeckRepositoryImpl(getIt<LocalAppDatabase>()));
-  getIt.registerSingleton<FlashcardRepository>(FlashcardRepositoryImpl(getIt<LocalAppDatabase>()));
+  getIt.registerSingleton<DeckRepository>(DeckRepositoryImpl(getIt<LocalAppDatabase>(), getIt<Logger>()));
+  getIt.registerSingleton<FlashcardRepository>(FlashcardRepositoryImpl(getIt<LocalAppDatabase>(), getIt<Logger>()));
 }

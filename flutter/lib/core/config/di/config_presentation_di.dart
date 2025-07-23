@@ -10,14 +10,4 @@ void configPresentationDi() {
   // You can also register your screens or widgets if needed
   // getIt.registerFactory<SplashScreen>(() => SplashScreen());
 
-  getIt.registerSingleton<Logger>(Logger(
-    printer: PrettyPrinter(
-      methodCount: 1,
-      errorMethodCount: 5,
-      lineLength: 80,
-      colors: true,
-      printEmojis: true,
-      dateTimeFormat: DateTimeFormat.dateAndTime,
-    ),
-  ));
 }

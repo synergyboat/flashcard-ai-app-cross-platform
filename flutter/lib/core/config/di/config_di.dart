@@ -1,3 +1,4 @@
+import 'package:flashcard/core/config/di/config_core_di.dart';
 import 'package:flashcard/data/repository/deck/deck_repository_impl.dart';
 import 'package:flashcard/data/repository/flashcard/flashcard_repository_impl.dart';
 import 'package:flashcard/data/sources/database/local/local_database_service.dart';
@@ -21,6 +22,7 @@ part 'config_domain_di.dart';
 final GetIt getIt = GetIt.instance;
 
 Future<void> configDi() async {
+  await configCoreDi();
   await configDataDi();
   configDomainDi();
   configPresentationDi();
