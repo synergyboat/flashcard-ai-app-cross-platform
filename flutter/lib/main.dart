@@ -4,8 +4,10 @@ import 'package:flashcard/core/config/services/openai_service.dart';
 import 'package:flashcard/presentation/router/router.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 
 import 'data/sources/database/database_initializer.dart';
+import 'data/sources/database/local/local_database_service.dart';
 
 void main() async {
   BindingBase.debugZoneErrorsAreFatal = true;
@@ -13,6 +15,8 @@ void main() async {
   await EnvService.config();
   await configDi();
   await DatabaseInitializer.initialize();
+  // Uncomment the line below to add sample data to the database for benchmarking purposes
+  await DatabaseInitializer.benchmarkDatabase(getIt<LocalAppDatabase>(), getIt<Logger>());
   OpenAiService.config(EnvService.getVariable('API_KEY') ?? '');
   PerformanceOverlay.allEnabled();
   runApp(const MyApp());
