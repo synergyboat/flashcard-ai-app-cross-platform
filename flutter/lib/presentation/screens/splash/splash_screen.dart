@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../components/backgrounds/gradient_background.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -24,14 +23,13 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: GradientBackground(
-            child: Center(
-              child: Text('Flashcard',
-                style: TextStyle(
-                    color: Colors.white
-                ),
-              ),
-            )
+        body: Center(
+          child: Text('Flashcard AI',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         )
     );
   }
