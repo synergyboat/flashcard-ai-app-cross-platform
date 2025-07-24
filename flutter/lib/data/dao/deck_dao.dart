@@ -45,7 +45,7 @@ abstract class DeckDao {
     return deckId;
   }
 
-  @transaction
+
   Future<List<DeckWithFlashcardsDbEntity>> getAllDeckWithFlashcards() async {
     final decks = await getAllDecks();
     final List<DeckWithFlashcardsDbEntity> decksWithFlashcards = [];
