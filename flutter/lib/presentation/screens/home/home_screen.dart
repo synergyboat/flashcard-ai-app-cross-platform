@@ -3,7 +3,6 @@ import 'package:flashcard/core/utils/navigation_helper.dart';
 import 'package:flashcard/domain/entities/deck.dart';
 import 'package:flashcard/domain/use_case/deck/get_all_decks_use_case.dart';
 import 'package:flashcard/presentation/components/bars/flashcard_bottom_action_bar.dart';
-import 'package:flashcard/presentation/components/buttons/add_button.dart';
 import 'package:flashcard/presentation/components/buttons/ai_button.dart';
 import 'package:flashcard/presentation/components/containers/deck_collection_grid.dart';
 import 'package:flutter/foundation.dart';
@@ -77,9 +76,9 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Center(
                 child: Text(
-                  "No decks found. Create a new deck to get started.",
+                  "No decks found. \nCreate a new deck to get started.",
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 16, color: Colors.black54),
+                  style: TextStyle(fontSize: 14, color: Colors.black54),
                 ),
               ),
               Align(

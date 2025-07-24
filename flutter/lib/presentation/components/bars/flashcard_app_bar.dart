@@ -31,7 +31,19 @@ class FlashcardAppBar extends StatelessWidget implements PreferredSizeWidget {
       child: Padding(padding: EdgeInsets.only(top: topPadding) ,
           child: Stack(
             children: [
-              Center(child: Text(titleText, style: TextStyle(color: Colors.black87),)),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 48.0),
+                child: Center(
+                    child: Text(
+                      titleText,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          color: Colors.black87,
+                          fontWeight: FontWeight.w500
+                      ),
+                    )
+                ),
+              ),
               SizedBox(
                 height: height,
                 child: Row(
@@ -41,13 +53,12 @@ class FlashcardAppBar extends StatelessWidget implements PreferredSizeWidget {
                         IconButton(
                           icon: const Icon(Icons.arrow_back, color: Colors.black87),
                           onPressed: () {
-                            // Navigate back to the previous screen
                             context.pop();
                           },
                         )
                           : const SizedBox(width: 16.0, height: 16.0,)
                     : leadingWidget!,
-                    actions != null? leadingWidget!
+                    actions != null? actions!
                         : const SizedBox(width: 16.0, height: 16.0,)
                   ],
                 ),

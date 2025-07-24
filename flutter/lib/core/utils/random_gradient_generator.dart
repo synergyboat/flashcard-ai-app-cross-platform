@@ -6,10 +6,10 @@ class RandomGradientGenerator {
 
   // Material colors for gradients
   static final List<Color> _colors = [
-    Colors.red, Colors.pink, Colors.purple, Colors.deepPurple,
-    Colors.indigo, Colors.blue, Colors.lightBlue, Colors.cyan,
-    Colors.teal, Colors.green, Colors.lightGreen, Colors.lime,
-    Colors.yellow, Colors.amber, Colors.orange, Colors.deepOrange,
+    Colors.red.shade100.withValues(alpha: 0.22), Colors.pink.shade100.withValues(alpha: 0.22), Colors.purple.shade100.withValues(alpha: 0.22), Colors.deepPurple.shade100.withValues(alpha: 0.22),
+    Colors.indigo.shade100.withValues(alpha: 0.22), Colors.blue.shade100.withValues(alpha: 0.22), Colors.lightBlue.shade100.withValues(alpha: 0.22), Colors.cyan.shade100.withValues(alpha: 0.22),
+    Colors.teal.shade100.withValues(alpha: 0.22), Colors.green.shade100.withValues(alpha: 0.22), Colors.lightGreen.shade100.withValues(alpha: 0.22), Colors.lime.shade100.withValues(alpha: 0.22),
+    Colors.yellow.shade100.withValues(alpha: 0.22), Colors.amber.shade100.withValues(alpha: 0.22), Colors.orange.shade100.withValues(alpha: 0.22), Colors.deepOrange.shade100.withValues(alpha: 0.22),
   ];
 
   static LinearGradient getRandomLinearGradient() {
@@ -43,5 +43,13 @@ class RandomGradientGenerator {
       end: alignment[1],
       colors: [color1, color2],
     );
+  }
+
+  static List<Color> getRandomColors(int count) {
+    List<Color> randomColors = [];
+    for (int i = 0; i < count; i++) {
+      randomColors.add(_colors[_random.nextInt(_colors.length)]);
+    }
+    return randomColors;
   }
 }

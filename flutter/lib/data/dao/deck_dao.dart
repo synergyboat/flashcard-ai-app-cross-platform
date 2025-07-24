@@ -1,3 +1,4 @@
+import 'package:flashcard/core/benchmark/log_exec_duration.dart';
 import 'package:flashcard/data/entities/deck_db_entity.dart';
 import 'package:floor/floor.dart';
 
@@ -45,9 +46,9 @@ abstract class DeckDao {
     return deckId;
   }
 
-
   Future<List<DeckWithFlashcardsDbEntity>> getAllDeckWithFlashcards() async {
-    final decks = await getAllDecks();
+    final decks = await logExecDuration(getAllDecks, name: 'Fetching all decks from DB',
+        tag: 'db_read');
     final List<DeckWithFlashcardsDbEntity> decksWithFlashcards = [];
 
     for (final deck in decks) {
