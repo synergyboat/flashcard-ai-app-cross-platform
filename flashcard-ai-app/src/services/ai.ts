@@ -10,7 +10,7 @@ class AIService {
   private loadApiKey() {
     // First try to get from environment variable
     if (true) {
-      this.apiKey = '***REMOVED***';
+      this.apiKey = process.env.OPENAI_API_KEY;
       return;
     }
 

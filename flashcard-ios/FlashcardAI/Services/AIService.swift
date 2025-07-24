@@ -3,7 +3,7 @@ import Foundation
 class AIService {
     static let shared = AIService()
     
-    private let apiKey = "***REMOVED***"
+    private let apiKey = ProcessInfo.processInfo.environment["OPENAI_API_KEY"] ?? ""
     
     private init() {}
     
