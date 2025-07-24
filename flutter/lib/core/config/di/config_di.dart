@@ -6,6 +6,7 @@ import 'package:flashcard/domain/repository/deck_repository.dart';
 import 'package:flashcard/domain/repository/flashcard_repository.dart';
 import 'package:flashcard/domain/use_case/ai/generate_deck_with_ai_use_case.dart';
 import 'package:flashcard/domain/use_case/deck/create_new_deck_use_case.dart';
+import 'package:flashcard/domain/use_case/deck/delete_deck_use_case.dart';
 import 'package:flashcard/domain/use_case/deck/get_all_decks_use_case.dart';
 import 'package:flashcard/domain/use_case/deck/get_flashcards_from_deck_use_case.dart';
 import 'package:get_it/get_it.dart';

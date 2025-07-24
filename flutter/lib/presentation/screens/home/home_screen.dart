@@ -76,9 +76,9 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Center(
                 child: Text(
-                  "No decks found. Create a new deck to get started.",
+                  "No decks found. \nCreate a new deck to get started.",
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 16, color: Colors.black54),
+                  style: TextStyle(fontSize: 14, color: Colors.black54),
                 ),
               ),
               Align(

@@ -18,7 +18,7 @@ class DatabaseInitializer {
         print('Database initialized successfully');
 
         //TODO: Remove this in production
-        await _addSampleData(database);
+       // await _addSampleData(database);
       }
 
     } catch (e) {

@@ -16,7 +16,7 @@ void main() async {
   await configDi();
   await DatabaseInitializer.initialize();
   // Uncomment the line below to add sample data to the database for benchmarking purposes
-  await DatabaseInitializer.benchmarkDatabase(getIt<LocalAppDatabase>(), getIt<Logger>());
+  //await DatabaseInitializer.benchmarkDatabase(getIt<LocalAppDatabase>(), getIt<Logger>());
   OpenAiService.config(EnvService.getVariable('API_KEY') ?? '');
   PerformanceOverlay.allEnabled();
   runApp(const MyApp());
