@@ -10,10 +10,6 @@ class AIService {
     func generateFlashcards(request: AIGenerationRequest) async throws -> AIGenerationResponse {
         print("🔧 AI Service: Starting generation for \(request.topic)")
         
-        // Temporarily force mock data for debugging
-        print("🔧 Forcing mock data for debugging")
-        return generateMockFlashcards(request: request)
-        
         guard !apiKey.isEmpty else {
             print("⚠️ No API key found, using mock data")
             return generateMockFlashcards(request: request)

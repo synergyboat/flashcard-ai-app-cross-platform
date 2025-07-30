@@ -333,9 +333,10 @@ class AIGenerateViewController: UIViewController {
                 )
                 print("✅ Deck created with ID: \(deckId)")
                 
-                // Create flashcards
+                // Create flashcards with explicit unique IDs
                 let flashcards = response.flashcards.map { cardInfo in
                     Flashcard(
+                        id: UUID().uuidString, // Explicitly generate new UUID
                         deckId: deckId,
                         question: cardInfo.question,
                         answer: cardInfo.answer
@@ -343,6 +344,7 @@ class AIGenerateViewController: UIViewController {
                 }
                 
                 print("💾 Creating \(flashcards.count) flashcards...")
+                print("🆔 Flashcard IDs: \(flashcards.map { $0.id })")
                 await databaseService.createFlashcards(flashcards)
                 print("✅ All flashcards created successfully")
                 
@@ -396,13 +398,17 @@ class AIGenerateViewController: UIViewController {
     }
     
     private func navigateToDeckDetails(deckId: String, deckName: String) {
+        print("🚀 Navigating to deck details for deckId: '\(deckId)'")
         Task {
             if let deck = await databaseService.getDeck(id: deckId) {
+                print("✅ Found deck: \(deck.name) with \(deck.flashcardCount ?? 0) cards")
                 DispatchQueue.main.async {
                     let deckDetailsVC = DeckDetailsViewController()
                     deckDetailsVC.configure(with: deck)
                     self.navigationController?.pushViewController(deckDetailsVC, animated: true)
                 }
+            } else {
+                print("❌ Failed to find deck with id: '\(deckId)'")
             }
         }
     }

@@ -125,6 +125,11 @@ class HomeViewController: UIViewController {
         ])
         
         aiButton.addTarget(self, action: #selector(aiButtonTapped), for: .touchUpInside)
+        
+        // Add long press gesture for benchmark
+        let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(aiButtonLongPressed))
+        longPressGesture.minimumPressDuration = 2.0
+        aiButton.addGestureRecognizer(longPressGesture)
     }
     
     private func setupCollectionView() {
@@ -151,6 +156,22 @@ class HomeViewController: UIViewController {
     @objc private func aiButtonTapped() {
         let aiGenerateVC = AIGenerateViewController()
         navigationController?.pushViewController(aiGenerateVC, animated: true)
+    }
+    
+    @objc private func aiButtonLongPressed(_ gesture: UILongPressGestureRecognizer) {
+        if gesture.state == .began {
+            // Show benchmark alert
+            let alert = UIAlertController(title: "Benchmark", message: "Run performance benchmark?", preferredStyle: .alert)
+            
+            alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+            alert.addAction(UIAlertAction(title: "Run", style: .default) { _ in
+                Task {
+                    await BenchmarkService.shared.runFullBenchmark()
+                }
+            })
+            
+            present(alert, animated: true)
+        }
     }
 }
 

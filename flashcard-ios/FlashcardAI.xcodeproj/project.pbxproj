@@ -18,10 +18,6 @@
 		A901A8F62B7A501000C3F6A0 /* StudyViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A901A8F52B7A501000C3F6A0 /* StudyViewController.swift */; };
 		A901A8F82B7A502000C3F6A0 /* Deck.swift in Sources */ = {isa = PBXBuildFile; fileRef = A901A8F72B7A502000C3F6A0 /* Deck.swift */; };
 		A901A8FA2B7A502800C3F6A0 /* Flashcard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A901A8F92B7A502800C3F6A0 /* Flashcard.swift */; };
-		A901A9052B7A506000C3F6A0 /* DeckEntity+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = A901A9062B7A506100C3F6A0 /* DeckEntity+CoreDataClass.swift */; };
-		A901A9072B7A506800C3F6A0 /* DeckEntity+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = A901A9082B7A506900C3F6A0 /* DeckEntity+CoreDataProperties.swift */; };
-		A901A9092B7A507000C3F6A0 /* FlashcardEntity+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = A901A90A2B7A507100C3F6A0 /* FlashcardEntity+CoreDataClass.swift */; };
-		A901A90B2B7A507800C3F6A0 /* FlashcardEntity+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = A901A90C2B7A507900C3F6A0 /* FlashcardEntity+CoreDataProperties.swift */; };
 		A901A8FC2B7A503000C3F6A0 /* DatabaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A901A8FB2B7A503000C3F6A0 /* DatabaseService.swift */; };
 		A901A8FE2B7A503800C3F6A0 /* AIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A901A8FD2B7A503800C3F6A0 /* AIService.swift */; };
 		A901A9002B7A504000C3F6A0 /* GradientButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A901A8FF2B7A504000C3F6A0 /* GradientButton.swift */; };
@@ -43,10 +39,6 @@
 		A901A8F52B7A501000C3F6A0 /* StudyViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudyViewController.swift; sourceTree = "<group>"; };
 		A901A8F72B7A502000C3F6A0 /* Deck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Deck.swift; sourceTree = "<group>"; };
 		A901A8F92B7A502800C3F6A0 /* Flashcard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Flashcard.swift; sourceTree = "<group>"; };
-		A901A9062B7A506100C3F6A0 /* DeckEntity+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DeckEntity+CoreDataClass.swift"; sourceTree = "<group>"; };
-		A901A9082B7A506900C3F6A0 /* DeckEntity+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DeckEntity+CoreDataProperties.swift"; sourceTree = "<group>"; };
-		A901A90A2B7A507100C3F6A0 /* FlashcardEntity+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FlashcardEntity+CoreDataClass.swift"; sourceTree = "<group>"; };
-		A901A90C2B7A507900C3F6A0 /* FlashcardEntity+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FlashcardEntity+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		A901A8FB2B7A503000C3F6A0 /* DatabaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseService.swift; sourceTree = "<group>"; };
 		A901A8FD2B7A503800C3F6A0 /* AIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIService.swift; sourceTree = "<group>"; };
 		A901A8FF2B7A504000C3F6A0 /* GradientButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradientButton.swift; sourceTree = "<group>"; };
@@ -114,10 +106,6 @@
 			children = (
 				A901A8F72B7A502000C3F6A0 /* Deck.swift */,
 				A901A8F92B7A502800C3F6A0 /* Flashcard.swift */,
-				A901A9062B7A506100C3F6A0 /* DeckEntity+CoreDataClass.swift */,
-				A901A9082B7A506900C3F6A0 /* DeckEntity+CoreDataProperties.swift */,
-				A901A90A2B7A507100C3F6A0 /* FlashcardEntity+CoreDataClass.swift */,
-				A901A90C2B7A507900C3F6A0 /* FlashcardEntity+CoreDataProperties.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -220,10 +208,6 @@
 				A901A8F62B7A501000C3F6A0 /* StudyViewController.swift in Sources */,
 				A901A8F82B7A502000C3F6A0 /* Deck.swift in Sources */,
 				A901A8FA2B7A502800C3F6A0 /* Flashcard.swift in Sources */,
-				A901A9052B7A506000C3F6A0 /* DeckEntity+CoreDataClass.swift in Sources */,
-				A901A9072B7A506800C3F6A0 /* DeckEntity+CoreDataProperties.swift in Sources */,
-				A901A9092B7A507000C3F6A0 /* FlashcardEntity+CoreDataClass.swift in Sources */,
-				A901A90B2B7A507800C3F6A0 /* FlashcardEntity+CoreDataProperties.swift in Sources */,
 				A901A8FC2B7A503000C3F6A0 /* DatabaseService.swift in Sources */,
 				A901A8FE2B7A503800C3F6A0 /* AIService.swift in Sources */,
 				A901A9002B7A504000C3F6A0 /* GradientButton.swift in Sources */,

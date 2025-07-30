@@ -1,5 +1,6 @@
 import * as SQLite from 'expo-sqlite';
 import { Deck, Flashcard } from '../types';
+import { logDbRowSize, logTotalDbRowSize, logExecDuration } from '../utils/benchmarkUtils';
 
 class DatabaseService {
   private db: SQLite.SQLiteDatabase | null = null;
@@ -145,6 +146,79 @@ class DatabaseService {
 
     await this.db.runAsync('DELETE FROM flashcards');
     await this.db.runAsync('DELETE FROM decks');
+  }
+
+  // Benchmark database operations
+  async benchmarkDatabase(): Promise<void> {
+    const demoDeck = {
+      name: 'Benchmark Deck',
+      description: 'A deck for benchmarking purposes',
+    };
+
+    // Log the size of the deck entity
+    logDbRowSize(demoDeck, {
+      name: 'Demo Deck',
+      tag: 'db_row_size_add_demo_Deck'
+    });
+
+    const deckId = await logExecDuration(
+      () => this.createDeck(demoDeck),
+      {
+        name: 'Adding demo deck to DB',
+        tag: 'db_write_add_demo_deck'
+      }
+    );
+
+    const demoFlashcard = {
+      deckId,
+      question: 'What is the capital of Germany?',
+      answer: 'Berlin',
+    };
+
+    // Log the size of the flashcard entity
+    logDbRowSize(demoFlashcard, {
+      name: 'Demo Flashcard',
+      tag: 'db_row_size_add_demo_flashcard'
+    });
+
+    await logExecDuration(
+      () => this.createFlashcards([demoFlashcard]),
+      {
+        name: 'Adding demo flashcard to DB',
+        tag: 'db_write_add_demo_flashcard'
+      }
+    );
+
+    const demoDeckFetched = await logExecDuration(
+      () => this.getDeck(deckId),
+      {
+        name: 'Fetching demo deck from DB',
+        tag: 'db_read_fetch_demo_deck'
+      }
+    );
+
+    if (demoDeckFetched) {
+      logDbRowSize(demoDeckFetched, {
+        name: 'Fetched Demo Deck',
+        tag: 'db_row_size_fetched_demo_deck'
+      });
+    }
+
+    const demoFlashcards = await logExecDuration(
+      () => this.getFlashcards(deckId),
+      {
+        name: 'Fetching flashcards for demo deck',
+        tag: 'db_read_fetch_demo_flashcards'
+      }
+    );
+
+    logTotalDbRowSize(
+      demoFlashcards,
+      {
+        name: 'Fetched Demo Flashcards',
+        tag: 'db_row_size_fetched_demo_flashcards'
+      }
+    );
   }
 }
 

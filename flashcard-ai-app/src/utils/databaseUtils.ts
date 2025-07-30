@@ -28,4 +28,15 @@ export const getDatabaseInfo = async () => {
     console.error('Error getting database info:', error);
     return null;
   }
+};
+
+export const runDatabaseBenchmark = async () => {
+  try {
+    console.log('🚀 Starting database benchmark...');
+    await databaseService.benchmarkDatabase();
+    console.log('✅ Database benchmark completed successfully');
+  } catch (error) {
+    console.error('❌ Error running database benchmark:', error);
+    Alert.alert('Error', 'Failed to run database benchmark');
+  }
 }; 

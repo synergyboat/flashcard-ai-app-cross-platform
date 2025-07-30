@@ -15,6 +15,13 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
         window?.rootViewController = navigationController
         window?.makeKeyAndVisible()
+        
+        // Run benchmark on app startup (similar to Flutter app)
+        #if DEBUG
+        Task {
+            await BenchmarkService.shared.runFullBenchmark()
+        }
+        #endif
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {
