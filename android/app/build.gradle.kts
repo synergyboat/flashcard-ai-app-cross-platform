@@ -4,16 +4,15 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     id("org.jetbrains.kotlin.plugin.serialization") version "2.2.0"
     id("com.google.dagger.hilt.android")
-    id("org.jetbrains.kotlin.kapt")
     id("com.google.devtools.ksp")
 }
 
 android {
-    namespace = "com.synergyboat.flutterai"
+    namespace = "com.synergyboat.flashcardAi"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.synergyboat.flutterai"
+        applicationId = "com.synergyboat.flashcardAi"
         minSdk = 24
         targetSdk = 36
         versionCode = 1
@@ -57,12 +56,15 @@ dependencies {
 
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.material.icons.extended)
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+    implementation(libs.kotlinx.serialization.json)
     implementation(libs.hilt)
-    kapt(libs.hilt.compiler)
     implementation(libs.hilt.navigation.compose) // For Compose navigation integration
     ksp(libs.hilt.compiler)
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
 
+    implementation(libs.openai.client)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
