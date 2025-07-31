@@ -16,6 +16,14 @@ import kotlinx.coroutines.delay
 fun SplashScreen(navController: NavController, viewModel: SplashScreenViewModel = hiltViewModel()) {
 
     LaunchedEffect(Unit) {
+
+        viewModel.deckRepository.createDeck(
+            com.synergyboat.flashcardAi.domain.entities.Deck(
+                name = "Default Deck",
+                description = "This is a default deck created on first launch.",
+            )
+        )
+
         delay(2000)
         navController.navigate(Routes.Home.route) {
             popUpTo("splash") { inclusive = true }
