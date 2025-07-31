@@ -1,11 +1,14 @@
 package com.synergyboat.flashcardAi.presentation.router
 
 import androidx.compose.runtime.Composable
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.synergyboat.flashcardAi.domain.entities.Deck
 import com.synergyboat.flashcardAi.presentation.deck.AIGenerateDeckScreen
+import com.synergyboat.flashcardAi.presentation.deck.DeckDetailsScreen
 import com.synergyboat.flashcardAi.presentation.home.HomeScreen
 import com.synergyboat.flashcardAi.presentation.splashscreen.SplashScreen
 import kotlin.collections.listOf
@@ -37,13 +40,20 @@ fun AppRouter() {
             )
         }
 
-        composable(Routes.DeckDetails.route + "/{deckId}") { backStackEntry ->
-            val deckId = backStackEntry.arguments?.getString("deckId")
-            // Here you would typically fetch the deck details using the deckId
-            // For now, we can just pass a dummy deck
-            HomeScreen(navController, decks = listOf(
-                Deck(id = deckId?.toLong() ?: 0, name = "Deck $deckId", description = "Description for deck $deckId")
-            ))
+        composable(
+            route = "${Routes.DeckDetails.route}/{deckId}",
+            arguments = listOf(navArgument("deckId") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val deckId = backStackEntry.arguments?.getLong("deckId") ?: -1L
+
+            DeckDetailsScreen(
+                navController = navController,
+                deck = Deck(
+                    id = deckId,
+                    name = "Deck $deckId",
+                    description = "Description for deck $deckId"
+                )
+            )
         }
 
         // Example future route

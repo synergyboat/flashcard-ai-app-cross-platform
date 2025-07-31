@@ -49,7 +49,7 @@ fun HomeScreen(
                 if (decks.isEmpty()) {
                     HomeEmptyState()
                 } else {
-                    DeckCollectionGrid(decks = decks, onDeckClick = {})
+                    DeckCollectionGrid(navController = navController, decks = decks, onDeckClick = {})
                 }
             }
         }

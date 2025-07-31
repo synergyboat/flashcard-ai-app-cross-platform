@@ -7,6 +7,7 @@ import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -43,8 +44,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import androidx.navigation.NavController
 import com.synergyboat.flashcardAi.domain.entities.Deck
 import com.synergyboat.flashcardAi.domain.entities.Flashcard
+import com.synergyboat.flashcardAi.presentation.components.FlashcardAppBar
 import kotlinx.coroutines.launch
 import kotlin.math.absoluteValue
 import kotlin.math.pow
@@ -52,9 +55,8 @@ import kotlin.math.pow
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DeckDetailsScreen(
+    navController: NavController,
     deck: Deck,
-    onClose: () -> Unit,
-    onDelete: (Deck) -> Unit
 ) {
     val flashcards = remember(deck) { deck.flashcards.toList() }
     val swipeOffset = remember { Animatable(0f) }
@@ -66,10 +68,11 @@ fun DeckDetailsScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(deck.name) },
+            FlashcardAppBar(
+                navController = navController,
+                title = deck.name,
                 actions = {
-                    IconButton(onClick = { showDeleteDialog(context, deck, onDelete) }) {
+                    IconButton(onClick = { showDeleteDialog(context, deck, {}) }) {
                         Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Red)
                     }
                 }
@@ -78,7 +81,7 @@ fun DeckDetailsScreen(
         bottomBar = {
             BottomAppBar {
                 Button(
-                    onClick = onClose,
+                    onClick = {},
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp)

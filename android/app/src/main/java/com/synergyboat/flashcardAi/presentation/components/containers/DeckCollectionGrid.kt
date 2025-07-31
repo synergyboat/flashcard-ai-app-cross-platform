@@ -12,12 +12,15 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.synergyboat.flashcardAi.domain.entities.Deck
 import com.synergyboat.flashcardAi.presentation.components.cards.DeckCard
+import com.synergyboat.flashcardAi.presentation.router.Routes
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun DeckCollectionGrid(
+    navController: NavController,
     decks: List<Deck>,
     onDeckClick: (Deck) -> Unit
 ) {
@@ -25,7 +28,9 @@ fun DeckCollectionGrid(
     val isMac = Build.DEVICE.lowercase().contains("mac") // platform check fallback
     val crossAxisCount = if (isMac || screenWidthDp > 1000) 6 else 2
 
-    Box(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .padding(horizontal = 16.dp)) {
         LazyVerticalGrid(
             columns = GridCells.Fixed(crossAxisCount),
             contentPadding = PaddingValues(horizontal = 16.dp),
@@ -34,7 +39,9 @@ fun DeckCollectionGrid(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(decks) { deck ->
-                DeckCard(deck = deck, onClick = { onDeckClick(deck) })
+                DeckCard(deck = deck, onClick = {
+                    navController.navigate(Routes.DeckDetails.createRoute(deck.id?:-1 ))
+                })
             }
         }
 
