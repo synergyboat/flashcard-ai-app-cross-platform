@@ -67,7 +67,6 @@ dependencies {
     ksp(libs.androidx.room.compiler)
 
     implementation(libs.openai.client)
-    implementation(libs.dotenv.kotlin)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

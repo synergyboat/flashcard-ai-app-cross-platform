@@ -1,13 +1,10 @@
 package com.synergyboat.flashcardAi.core.di
 
 import android.content.Context
-import android.graphics.Path
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.room.Room
 import com.aallam.openai.api.http.Timeout
 import com.aallam.openai.client.OpenAI
-import com.aallam.openai.client.OpenAIHost.Companion.OpenAI
+import com.synergyboat.flashcardAi.BuildConfig
 import com.synergyboat.flashcardAi.data.dao.DeckDao
 import com.synergyboat.flashcardAi.data.dao.FlashcardDao
 import com.synergyboat.flashcardAi.data.services.database.RoomsDatabase
@@ -17,11 +14,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import io.github.cdimascio.dotenv.Dotenv
-import java.util.logging.Logger
 import javax.inject.Singleton
 import kotlin.time.Duration.Companion.seconds
-import com.synergyboat.flashcardAi.BuildConfig
 
 @Module
 @InstallIn(SingletonComponent::class)
