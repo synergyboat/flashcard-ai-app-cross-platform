@@ -6,7 +6,7 @@ import com.synergyboat.flashcardAi.domain.repository.FlashcardRepository
 class GetFlashcardsFromDeckUseCase(
     private val repository: FlashcardRepository
 ) {
-    suspend operator fun invoke(deckId: Int): List<Flashcard> {
+    suspend operator fun invoke(deckId: Long): List<Flashcard> {
         return repository.getFlashcardsByDeck(deckId)
     }
 }

@@ -9,7 +9,7 @@ import com.synergyboat.flashcardAi.data.entities.FlashcardEntity
 interface DeckDao {
 
     @Query("SELECT * FROM deck WHERE id = :deckId")
-    suspend fun getDeckById(deckId: Int): DeckEntity?
+    suspend fun getDeckById(deckId: Long): DeckEntity?
 
     @Insert
     suspend fun createDeck(deck: DeckEntity): Long
@@ -24,7 +24,7 @@ interface DeckDao {
     suspend fun deleteDeck(deck: DeckEntity)
 
     @Query("DELETE FROM deck WHERE id = :deckId")
-    suspend fun deleteDeckById(deckId: Int)
+    suspend fun deleteDeckById(deckId: Long)
 
     @Insert
     suspend fun addMultipleFlashcardsToDeck(flashcards: List<FlashcardEntity>)
@@ -34,8 +34,8 @@ interface DeckDao {
         deck: DeckEntity,
         flashcards: List<FlashcardEntity>
     ): Long {
-        val deckId = createDeck(deck)
-        val updatedFlashcards = flashcards.map { it.copy(deckId = deckId.toInt()) }
+        val deckId: Long = createDeck(deck)
+        val updatedFlashcards = flashcards.map { it.copy(deckId = deckId) }
         addMultipleFlashcardsToDeck(updatedFlashcards)
         return deckId
     }

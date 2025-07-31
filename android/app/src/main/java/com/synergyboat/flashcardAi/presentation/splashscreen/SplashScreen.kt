@@ -9,6 +9,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.synergyboat.flashcardAi.domain.entities.Deck
 import com.synergyboat.flashcardAi.presentation.router.Routes
 import kotlinx.coroutines.delay
 
@@ -16,13 +17,6 @@ import kotlinx.coroutines.delay
 fun SplashScreen(navController: NavController, viewModel: SplashScreenViewModel = hiltViewModel()) {
 
     LaunchedEffect(Unit) {
-
-        viewModel.deckRepository.createDeck(
-            com.synergyboat.flashcardAi.domain.entities.Deck(
-                name = "Default Deck",
-                description = "This is a default deck created on first launch.",
-            )
-        )
 
         delay(2000)
         navController.navigate(Routes.Home.route) {

@@ -1,5 +1,7 @@
 package com.synergyboat.flashcardAi.data.repository
 
+import com.synergyboat.flashcardAi.data.converter.DeckEntityFactory
+import com.synergyboat.flashcardAi.data.converter.FlashcardEntityFactory
 import com.synergyboat.flashcardAi.data.dao.DeckDao
 import com.synergyboat.flashcardAi.data.services.database.RoomsDatabase
 import com.synergyboat.flashcardAi.domain.entities.Deck
@@ -17,12 +19,19 @@ class DeckRepositoryImpl @Inject constructor(val deckDao: DeckDao): DeckReposito
         TODO("Not yet implemented")
     }
 
-    override suspend fun createDeck(deck: Deck): Deck {
+    override suspend fun createDeck(deck: Deck): Long {
         // TODO("Not yet implemented")
-        return deck
+        return 0
     }
 
-    override suspend fun deleteDeck(id: Int) {
+    override suspend fun createDeckWithFlashcards(deck: Deck): Long {
+        return deckDao.createDeckWithFlashcards(
+            DeckEntityFactory.fromDeck(deck),
+            deck.flashcards.map { FlashcardEntityFactory.fromFlashcard(it) }
+        )
+    }
+
+    override suspend fun deleteDeck(id: Long) {
         TODO("Not yet implemented")
     }
 
@@ -30,7 +39,7 @@ class DeckRepositoryImpl @Inject constructor(val deckDao: DeckDao): DeckReposito
         TODO("Not yet implemented")
     }
 
-    override suspend fun getDeckById(id: Int): Deck? {
+    override suspend fun getDeckById(id: Long): Deck? {
         TODO("Not yet implemented")
     }
 

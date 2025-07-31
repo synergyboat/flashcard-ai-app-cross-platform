@@ -3,8 +3,11 @@ import com.synergyboat.flashcardAi.domain.entities.Deck
 
 interface DeckRepository {
     suspend fun getAllDecks(): List<Deck>
-    suspend fun createDeck(deck: Deck): Deck
-    suspend fun deleteDeck(id: Int)
+    suspend fun createDeck(deck: Deck): Long
+
+    suspend fun createDeckWithFlashcards(deck: Deck): Long
+
+    suspend fun deleteDeck(id: Long)
     suspend fun updateDeck(deck: Deck): Deck
-    suspend fun getDeckById(id: Int): Deck?
+    suspend fun getDeckById(id: Long): Deck?
 }

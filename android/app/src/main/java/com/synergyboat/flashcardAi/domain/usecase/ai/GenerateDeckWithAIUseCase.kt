@@ -8,7 +8,7 @@ class GenerateDeckWithAIUseCase(
     private val repository: AiGeneratorRepository
 ) {
     suspend operator fun invoke(
-        deckId: Int? = null,
+        deckId: Long? = null,
         count: Int = 10,
         prompt: String = ""
     ): Deck {

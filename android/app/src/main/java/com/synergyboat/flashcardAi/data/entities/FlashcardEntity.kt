@@ -2,6 +2,7 @@ package com.synergyboat.flashcardAi.data.entities
 
 
 import androidx.room.*
+import java.time.LocalDateTime
 import java.util.*
 
 @Entity(
@@ -17,8 +18,8 @@ import java.util.*
     indices = [Index(value = ["deckId"])]
 )
 data class FlashcardEntity(
-    @PrimaryKey(autoGenerate = true) val id: Int? = null,
-    val deckId: Int?,
+    @PrimaryKey(autoGenerate = true) val id: Long? = null,
+    val deckId: Long?,
     val question: String,
     val answer: String,
     val createdAt: Date? = null,

@@ -7,7 +7,10 @@ import javax.inject.Inject
 class CreateNewDeckUseCase @Inject constructor(
     private val repository: DeckRepository
 ) {
-    suspend operator fun invoke(deck: Deck): Deck {
-        return repository.createDeck(deck)
+    suspend operator fun invoke(deck: Deck): Long {
+
+        return if (deck.flashcards.isEmpty())
+            repository.createDeck(deck)
+        else repository.createDeckWithFlashcards(deck)
     }
 }

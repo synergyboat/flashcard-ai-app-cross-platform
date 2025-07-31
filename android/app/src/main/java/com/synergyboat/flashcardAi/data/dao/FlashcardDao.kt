@@ -11,7 +11,7 @@ interface FlashcardDao {
     suspend fun createFlashcard(flashcard: FlashcardEntity)
 
     @Query("SELECT * FROM flashcard WHERE deckId = :deckId")
-    suspend fun getAllFlashcardsFromDeckId(deckId: Int): List<FlashcardEntity>
+    suspend fun getAllFlashcardsFromDeckId(deckId: Long): List<FlashcardEntity>
 
     @Update
     suspend fun updateFlashcard(flashcard: FlashcardEntity)
@@ -20,5 +20,5 @@ interface FlashcardDao {
     suspend fun deleteFlashcard(flashcard: FlashcardEntity)
 
     @Query("DELETE FROM flashcard WHERE id = :flashcardId")
-    suspend fun deleteFlashcardById(flashcardId: Int)
+    suspend fun deleteFlashcardById(flashcardId: Long)
 }
