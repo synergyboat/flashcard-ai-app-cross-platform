@@ -1,18 +1,17 @@
 package com.synergyboat.flashcardAi.core.di
 
-import android.content.Context
-import androidx.room.Room
-import com.synergyboat.flashcardAi.data.dao.DeckDao
+import com.aallam.openai.api.chat.ChatCompletionRequest
 import com.synergyboat.flashcardAi.data.repository.DeckRepositoryImpl
-import com.synergyboat.flashcardAi.data.services.database.RoomsDatabase
+import com.synergyboat.flashcardAi.data.repository.ai.AiGeneratorRepositoryImpl
+import com.synergyboat.flashcardAi.data.repository.ai.AiPromptBuilderRepositoryImpl
 import com.synergyboat.flashcardAi.domain.repository.DeckRepository
 import com.synergyboat.flashcardAi.domain.repository.FlashcardRepository
+import com.synergyboat.flashcardAi.domain.repository.ai.AiGeneratorRepository
+import com.synergyboat.flashcardAi.domain.repository.ai.AiPromptBuilderRepository
 import dagger.Binds
 import dagger.Module
-import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import java.util.logging.Logger
 import javax.inject.Singleton
 
 @Module
@@ -26,5 +25,17 @@ abstract class DomainDependencyModule {
     abstract fun bindDeckRepository(
         impl: DeckRepositoryImpl
     ): DeckRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindAiGeneratorRepository(
+        impl: AiGeneratorRepositoryImpl
+    ): AiGeneratorRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindAiPromptBuilderRepository(
+        impl: AiPromptBuilderRepositoryImpl
+    ): AiPromptBuilderRepository<ChatCompletionRequest>
 
 }

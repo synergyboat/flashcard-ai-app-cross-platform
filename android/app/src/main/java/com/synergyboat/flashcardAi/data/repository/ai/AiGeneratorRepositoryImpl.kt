@@ -6,16 +6,21 @@ import com.aallam.openai.api.chat.ChatCompletionRequest
 import com.synergyboat.flashcardAi.data.converter.DeckEntityFactory
 import com.synergyboat.flashcardAi.data.services.openai.OpenAIService
 import com.synergyboat.flashcardAi.domain.entities.Deck
+import com.synergyboat.flashcardAi.domain.repository.ai.AiGeneratorRepository
 import com.synergyboat.flashcardAi.domain.repository.ai.AiPromptBuilderRepository
 import javax.inject.Inject
 
 class AiGeneratorRepositoryImpl @Inject constructor(
     private val aiPromptBuilderRepository: AiPromptBuilderRepository<ChatCompletionRequest>,
     private val openAIService: OpenAIService
-) {
+): AiGeneratorRepository {
 
     @RequiresApi(Build.VERSION_CODES.O)
-    suspend fun generateDeck(topic: String, count: Int = 10): Deck {
+    override suspend fun generateDeck(
+        deckId: Long?,
+        topic: String,
+        count: Int
+    ): Deck {
         val chatCompletionRequest = aiPromptBuilderRepository.buildPrompt(topic, count)
         val jsonString = openAIService.getChatResponseJson(chatCompletionRequest)
         return DeckEntityFactory.fromJsonToDeck(jsonString)

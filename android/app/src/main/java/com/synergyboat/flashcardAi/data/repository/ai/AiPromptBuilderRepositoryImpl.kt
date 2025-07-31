@@ -7,7 +7,7 @@ import com.aallam.openai.api.model.ModelId
 import com.synergyboat.flashcardAi.core.Constants
 import com.synergyboat.flashcardAi.domain.repository.ai.AiPromptBuilderRepository
 
-class AiPromptGeneratorRepositoryImpl: AiPromptBuilderRepository<ChatCompletionRequest> {
+class AiPromptBuilderRepositoryImpl: AiPromptBuilderRepository<ChatCompletionRequest> {
     override fun buildPrompt(topic: String, count: Int): ChatCompletionRequest {
         return ChatCompletionRequest(
             model = ModelId("gpt-3.5-turbo"),

@@ -7,9 +7,13 @@ import com.synergyboat.flashcardAi.data.services.database.RoomsDatabase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import io.github.cdimascio.dotenv.Dotenv
 import java.util.logging.Logger
 import javax.inject.Singleton
+import io.github.cdimascio.dotenv.dotenv
+import com.synergyboat.flashcardAi.BuildConfig
 
 @Module
 @InstallIn(SingletonComponent::class)

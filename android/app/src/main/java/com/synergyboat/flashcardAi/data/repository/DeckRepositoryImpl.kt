@@ -16,7 +16,7 @@ import javax.inject.Singleton
 @Singleton
 class DeckRepositoryImpl @Inject constructor(val deckDao: DeckDao): DeckRepository {
     override suspend fun getAllDecks(): List<Deck> {
-        TODO("Not yet implemented")
+        return deckDao.getAllDecks().map { DeckEntityFactory.toDeck(it) }
     }
 
     override suspend fun createDeck(deck: Deck): Long {

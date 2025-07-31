@@ -10,13 +10,15 @@ plugins {
 android {
     namespace = "com.synergyboat.flashcardAi"
     compileSdk = 36
-
+    android.buildFeatures.buildConfig = true
     defaultConfig {
         applicationId = "com.synergyboat.flashcardAi"
         minSdk = 24
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
+
+        buildConfigField("String", "API_KEY", "\"\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -65,6 +67,7 @@ dependencies {
     ksp(libs.androidx.room.compiler)
 
     implementation(libs.openai.client)
+    implementation(libs.dotenv.kotlin)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
