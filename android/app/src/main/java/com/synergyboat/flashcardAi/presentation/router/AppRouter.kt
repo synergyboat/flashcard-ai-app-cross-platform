@@ -26,12 +26,7 @@ fun AppRouter() {
         }
 
         composable(Routes.Home.route) {
-            HomeScreen(navController, decks = listOf(
-                // Example decks for preview
-                Deck(id = 1, name = "Deck 1", description = "Description 1"),
-                Deck(id = 1, name = "Deck 1", description = "Description 1"),
-                Deck(id = 1, name = "Deck 1", description = "Description 1"),
-            ))
+            HomeScreen(navController)
         }
 
         composable(Routes.AiGenerateDeck.route) {

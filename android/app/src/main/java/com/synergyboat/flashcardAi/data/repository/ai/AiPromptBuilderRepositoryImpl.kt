@@ -6,8 +6,11 @@ import com.aallam.openai.api.chat.ChatRole
 import com.aallam.openai.api.model.ModelId
 import com.synergyboat.flashcardAi.core.Constants
 import com.synergyboat.flashcardAi.domain.repository.ai.AiPromptBuilderRepository
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class AiPromptBuilderRepositoryImpl: AiPromptBuilderRepository<ChatCompletionRequest> {
+@Singleton
+class AiPromptBuilderRepositoryImpl @Inject constructor(): AiPromptBuilderRepository<ChatCompletionRequest> {
     override fun buildPrompt(topic: String, count: Int): ChatCompletionRequest {
         return ChatCompletionRequest(
             model = ModelId("gpt-3.5-turbo"),

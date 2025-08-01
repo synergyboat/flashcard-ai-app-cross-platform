@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.synergyboat.flashcardAi.domain.entities.Deck
+import com.synergyboat.flashcardAi.domain.usecase.ai.GenerateDeckWithAIUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import java.util.logging.Logger
@@ -14,7 +15,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AIGenerateDeckViewModel @Inject constructor(
-    //private val generateDeckWithAiUseCase: GenerateDeckWithAiUseCase,
+    private val generateDeckWithAIUseCase: GenerateDeckWithAIUseCase,
     private val logger: Logger
 ) : ViewModel() {
 
@@ -26,20 +27,20 @@ class AIGenerateDeckViewModel @Inject constructor(
         onSuccess: (Deck) -> Unit,
         onError: (Throwable) -> Unit = {}
     ) {
-//        if (isGenerating) return
-//
-//        viewModelScope.launch {
-//            isGenerating = true
-//            try {
-//                val deck = generateDeckWithAiUseCase(promptText, numberOfCards)
-//                logger.info("Deck generated with prompt: $promptText")
-//                onSuccess(deck)
-//            } catch (e: Exception) {
-//                logger.warning("Error generating deck: ${e.message}")
-//                onError(e)
-//            } finally {
-//                isGenerating = false
-//            }
-//        }
+        if (isGenerating) return
+
+        viewModelScope.launch {
+            isGenerating = true
+            try {
+                val deck = generateDeckWithAIUseCase(prompt = promptText, count = numberOfCards)
+                logger.info("Deck generated with prompt: $promptText")
+                onSuccess(deck)
+            } catch (e: Exception) {
+                logger.warning("Error generating deck: ${e.message}")
+                onError(e)
+            } finally {
+                isGenerating = false
+            }
+        }
     }
 }

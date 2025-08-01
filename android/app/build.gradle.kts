@@ -18,7 +18,7 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        buildConfigField("String", "API_KEY", "\"\"")
+        buildConfigField("String", "API_KEY", "\"YOUR_OPEN_AI_KEY_HERE\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -54,6 +54,14 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+
+    // 👇 Required by OpenAI's Ktor-based HTTP client
+    implementation(libs.ktor.client.okhttp) // Match your ktor version
+
+    // ✅ Also ensure these are present:
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.ktor.serialization.kotlinx.json)
 
 
     implementation(libs.androidx.navigation.compose)

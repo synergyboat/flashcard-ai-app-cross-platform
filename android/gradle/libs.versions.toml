@@ -11,6 +11,10 @@ junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
 kotlinxSerializationJson = "1.9.0"
+ktorClientContentNegotiation = "3.2.3"
+ktorClientCore = "3.2.3"
+ktorClientOkhttp = "3.2.3"
+ktorSerializationKotlinxJson = "3.2.3"
 lifecycleRuntimeKtx = "2.9.2"
 activityCompose = "1.10.1"
 composeBom = "2025.07.00"
@@ -47,6 +51,10 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 hilt = { module = "com.google.dagger:hilt-android", version.ref = "hilt" }
 hilt_compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hilt" }
 hilt_navigation_compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hilt_navigation_compose" }
+ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktorClientContentNegotiation" }
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktorClientCore" }
+ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktorClientOkhttp" }
+ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktorSerializationKotlinxJson" }
 openai-client = { module = "com.aallam.openai:openai-client", version.ref = "openaiClient" }
 
 [plugins]

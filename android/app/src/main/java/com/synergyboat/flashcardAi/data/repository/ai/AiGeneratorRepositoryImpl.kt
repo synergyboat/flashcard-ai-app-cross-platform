@@ -9,7 +9,9 @@ import com.synergyboat.flashcardAi.domain.entities.Deck
 import com.synergyboat.flashcardAi.domain.repository.ai.AiGeneratorRepository
 import com.synergyboat.flashcardAi.domain.repository.ai.AiPromptBuilderRepository
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class AiGeneratorRepositoryImpl @Inject constructor(
     private val aiPromptBuilderRepository: AiPromptBuilderRepository<ChatCompletionRequest>,
     private val openAIService: OpenAIService

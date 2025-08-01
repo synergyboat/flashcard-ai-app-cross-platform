@@ -15,7 +15,7 @@ import com.synergyboat.flashcardAi.presentation.splashscreen.viewModels.SplashSc
 import kotlinx.coroutines.delay
 
 @Composable
-fun SplashScreen(navController: NavController, viewModel: SplashScreenViewModel = hiltViewModel()) {
+fun SplashScreen(navController: NavController, viewModel: SplashScreenViewModel = hiltViewModel<SplashScreenViewModel>()) {
 
     LaunchedEffect(Unit) {
         delay(2000)

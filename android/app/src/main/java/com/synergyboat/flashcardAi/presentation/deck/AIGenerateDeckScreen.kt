@@ -46,9 +46,10 @@ fun AIGenerateDeckScreen(
     navController: NavController,
     viewModel: AIGenerateDeckViewModel = hiltViewModel()
 ) {
-    val prompt by remember { mutableStateOf(viewModel.promptText) }
-    val isGenerating by remember { derivedStateOf { viewModel.isGenerating } }
     val context = LocalContext.current
+    val prompt = viewModel.promptText
+    val isGenerating = viewModel.isGenerating
+    val selectedCount = viewModel.numberOfCards
 
     Scaffold(
         topBar = {
@@ -95,11 +96,10 @@ fun AIGenerateDeckScreen(
                         Text("Select number of cards", fontSize = 12.sp)
 
                         val expanded = remember { mutableStateOf(false) }
-                        val selectedCount = viewModel.numberOfCards
 
                         Box {
                             Text(
-                                text = "$selectedCount Cards",
+                                text = "${viewModel.numberOfCards} Cards",
                                 modifier = Modifier
                                     .clickable { expanded.value = true }
                                     .padding(8.dp),
@@ -125,7 +125,6 @@ fun AIGenerateDeckScreen(
             }
 
             Spacer(modifier = Modifier.height(64.dp))
-
             GradientButton(
                 text = "Generate Deck",
                 onClick = {

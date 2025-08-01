@@ -14,6 +14,7 @@ import com.synergyboat.flashcardAi.domain.usecase.CreateNewDeckUseCase
 import com.synergyboat.flashcardAi.domain.usecase.DeleteDeckUseCase
 import com.synergyboat.flashcardAi.domain.usecase.GetAllDecksUseCase
 import com.synergyboat.flashcardAi.domain.usecase.GetFlashcardsFromDeckUseCase
+import com.synergyboat.flashcardAi.domain.usecase.ai.GenerateDeckWithAIUseCase
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -100,4 +101,11 @@ object UseCaseDependencyModule {
     ) = GetFlashcardsFromDeckUseCase(
         repository = flashcardRepository
     )
+
+    @Provides
+    @Singleton
+    fun providesGenerateDeckWithAIUseCase(
+        aiGeneratorRepository: AiGeneratorRepository,
+    ) = GenerateDeckWithAIUseCase(
+        repository = aiGeneratorRepository)
 }
