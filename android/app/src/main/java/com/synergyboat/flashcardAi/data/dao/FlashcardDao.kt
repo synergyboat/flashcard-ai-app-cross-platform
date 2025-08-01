@@ -8,7 +8,7 @@ import com.synergyboat.flashcardAi.data.entities.FlashcardEntity
 interface FlashcardDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun createFlashcard(flashcard: FlashcardEntity)
+    suspend fun createFlashcard(flashcard: FlashcardEntity): Long
 
     @Query("SELECT * FROM flashcard WHERE deckId = :deckId")
     suspend fun getAllFlashcardsFromDeckId(deckId: Long): List<FlashcardEntity>

@@ -11,6 +11,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.synergyboat.flashcardAi.domain.entities.Deck
 import com.synergyboat.flashcardAi.presentation.router.Routes
+import com.synergyboat.flashcardAi.presentation.splashscreen.viewModels.SplashScreenViewModel
 import kotlinx.coroutines.delay
 
 @Composable

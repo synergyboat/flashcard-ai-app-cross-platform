@@ -1,4 +1,4 @@
-package com.synergyboat.flashcardAi.presentation.splashscreen
+package com.synergyboat.flashcardAi.presentation.splashscreen.viewModels
 
 import androidx.lifecycle.ViewModel
 import com.synergyboat.flashcardAi.core.benchmark.ExecutionLogger
