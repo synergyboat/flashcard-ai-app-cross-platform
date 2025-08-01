@@ -37,10 +37,12 @@ object FlashcardEntityFactory {
     fun fromJsonToFlashcard(json: String): Flashcard {
 
         val jsonObject = JSONObject(json)
-        val id = jsonObject.optLong("id", -1)
+        val id: Long? = jsonObject.opt("id")?.let {
+            if (it is Number) it.toLong() else null
+        }
         val question = jsonObject.optString("question", "")
         val answer = jsonObject.optString("answer", "")
-        val deckId = jsonObject.optLong("deckId", -1)
+        val deckId = jsonObject.optLong("deckId")
         val createdAt: Date? = jsonObject.optString("createdAt").takeIf { it.isNotEmpty() }?.let {
             LocalDateTime.parse(it).let { dateTime -> Date.from(dateTime.atZone(java.time.ZoneId.systemDefault()).toInstant()) }
         }

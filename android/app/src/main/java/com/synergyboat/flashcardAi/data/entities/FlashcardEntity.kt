@@ -19,9 +19,9 @@ import java.util.*
 )
 data class FlashcardEntity(
     @PrimaryKey(autoGenerate = true) val id: Long? = null,
-    val deckId: Long?,
-    val question: String,
-    val answer: String,
+    val deckId: Long? = null,
+    val question: String = "",
+    val answer: String = "",
     val createdAt: Date? = null,
     val updatedAt: Date? = null,
     val lastReviewed: Date? = null

@@ -6,12 +6,12 @@ import java.time.LocalDateTime
 
 @Serializable
 data class Deck(
-    val id: Long? = null,
-    val name: String,
-    val description: String,
+    var id: Long? = null,
+    var name: String =  "",
+    var description: String = "",
     @kotlinx.serialization.Contextual
-    val createdAt: Date? = null,
+    var createdAt: Date? = null,
     @kotlinx.serialization.Contextual
-    val updatedAt: Date? = null,
-    val flashcards: List<Flashcard> = emptyList()
+    var updatedAt: Date? = null,
+    var flashcards: List<Flashcard> = emptyList()
 )

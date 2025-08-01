@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.synergyboat.flashcardAi.domain.entities.Deck
+import com.synergyboat.flashcardAi.domain.usecase.CreateNewDeckUseCase
 import com.synergyboat.flashcardAi.domain.usecase.ai.GenerateDeckWithAIUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -16,6 +17,7 @@ import javax.inject.Inject
 @HiltViewModel
 class AIGenerateDeckViewModel @Inject constructor(
     private val generateDeckWithAIUseCase: GenerateDeckWithAIUseCase,
+    private val createNewDeckUseCase: CreateNewDeckUseCase,
     private val logger: Logger
 ) : ViewModel() {
 
@@ -34,6 +36,7 @@ class AIGenerateDeckViewModel @Inject constructor(
             try {
                 val deck = generateDeckWithAIUseCase(prompt = promptText, count = numberOfCards)
                 logger.info("Deck generated with prompt: $promptText")
+                createNewDeckUseCase(deck).also { deck.id = it }
                 onSuccess(deck)
             } catch (e: Exception) {
                 logger.warning("Error generating deck: ${e.message}")

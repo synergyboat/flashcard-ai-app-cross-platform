@@ -8,8 +8,8 @@ import java.time.LocalDateTime
 data class Flashcard(
     val id: Long? = null,
     val deckId: Long? = null,
-    val question: String,
-    val answer: String,
+    val question: String = "",
+    val answer: String = "",
     @kotlinx.serialization.Contextual
     val createdAt: Date? = null,
     @kotlinx.serialization.Contextual

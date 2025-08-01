@@ -7,8 +7,8 @@ import java.util.Date
 @Entity(tableName = "deck")
 data class DeckEntity(
     @PrimaryKey(autoGenerate = true) val id: Long? = null,
-    val name: String,
-    val description: String,
+    val name: String = "",
+    val description: String = "",
     val createdAt: Date? = null,
     val updatedAt: Date? = null
 )

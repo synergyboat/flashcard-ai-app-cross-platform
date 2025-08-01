@@ -33,7 +33,9 @@ object DeckEntityFactory {
     fun fromJsonToDeck(json: String): Deck {
         val jsonObject = JSONObject(json)
 
-        val id = jsonObject.optLong("id", -1)
+        val id: Long? = jsonObject.opt("id")?.let {
+            if (it is Number) it.toLong() else null
+        }
         val name = jsonObject.optString("name", "")
         val description = jsonObject.optString("description", "")
 

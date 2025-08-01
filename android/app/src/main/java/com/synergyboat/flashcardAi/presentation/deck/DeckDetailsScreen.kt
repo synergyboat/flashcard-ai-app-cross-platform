@@ -98,7 +98,7 @@ fun DeckDetailsScreen(
                     .fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                if (deck.description.isNotEmpty()) {
+                if (deck.description != null) {
                     Text(
                         text = deck.description!!,
                         style = MaterialTheme.typography.bodySmall,
@@ -191,12 +191,12 @@ fun FlashcardContent(flashcard: Flashcard) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = flashcard.question,
+            text = flashcard.question?:"",
             style = MaterialTheme.typography.headlineSmall,
             textAlign = TextAlign.Center
         )
         Text(
-            text = flashcard.answer,
+            text = flashcard.answer?:"",
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center
         )
