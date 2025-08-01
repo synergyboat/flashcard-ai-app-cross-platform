@@ -11,6 +11,8 @@ import com.synergyboat.flashcardAi.presentation.deck.AIGenerateDeckScreen
 import com.synergyboat.flashcardAi.presentation.deck.DeckDetailsScreen
 import com.synergyboat.flashcardAi.presentation.home.HomeScreen
 import com.synergyboat.flashcardAi.presentation.splashscreen.SplashScreen
+import kotlinx.serialization.json.Json
+import java.nio.charset.StandardCharsets
 import kotlin.collections.listOf
 
 @Composable
@@ -36,18 +38,16 @@ fun AppRouter() {
         }
 
         composable(
-            route = "${Routes.DeckDetails.route}/{deckId}",
-            arguments = listOf(navArgument("deckId") { type = NavType.LongType })
+            route = "${Routes.DeckDetails.route}/{deckJson}",
+            arguments = listOf(navArgument("deckJson") { type = NavType.StringType })
         ) { backStackEntry ->
-            val deckId = backStackEntry.arguments?.getLong("deckId") ?: -1L
+            val deckJson = backStackEntry.arguments?.getString("deckJson") ?: ""
+            val decodedDeck = java.net.URLDecoder.decode(deckJson, StandardCharsets.UTF_8.toString())
+            val deck = Json.decodeFromString<Deck>(decodedDeck)
 
             DeckDetailsScreen(
                 navController = navController,
-                deck = Deck(
-                    id = deckId,
-                    name = "Deck $deckId",
-                    description = "Description for deck $deckId"
-                )
+                deck = deck
             )
         }
 

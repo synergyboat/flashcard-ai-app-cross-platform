@@ -7,6 +7,6 @@ sealed class Routes(val route: String) {
     object AiGenerateDeck : Routes("ai_generate_deck")
 
     object DeckDetails : Routes("deck_details") {
-        fun createRoute(deckId: Long): String = "$route/$deckId"
+        fun createRoute(deck: String): String = "$route/$deck"
     }
 }

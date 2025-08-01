@@ -7,6 +7,8 @@ interface DeckRepository {
 
     suspend fun createDeckWithFlashcards(deck: Deck): Long
 
+    suspend fun getAllDecksWithFlashcards(): List<Deck>
+
     suspend fun deleteDeck(id: Long)
     suspend fun updateDeck(deck: Deck): Deck
     suspend fun getDeckById(id: Long): Deck?

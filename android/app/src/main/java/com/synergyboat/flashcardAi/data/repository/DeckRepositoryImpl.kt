@@ -3,6 +3,7 @@ package com.synergyboat.flashcardAi.data.repository
 import com.synergyboat.flashcardAi.data.converter.DeckEntityFactory
 import com.synergyboat.flashcardAi.data.converter.FlashcardEntityFactory
 import com.synergyboat.flashcardAi.data.dao.DeckDao
+import com.synergyboat.flashcardAi.data.entities.DeckWithFlashcardsEntity
 import com.synergyboat.flashcardAi.data.services.database.RoomsDatabase
 import com.synergyboat.flashcardAi.domain.entities.Deck
 import com.synergyboat.flashcardAi.domain.repository.DeckRepository
@@ -29,6 +30,15 @@ class DeckRepositoryImpl @Inject constructor(val deckDao: DeckDao): DeckReposito
             DeckEntityFactory.fromDeck(deck),
             deck.flashcards.map { FlashcardEntityFactory.fromFlashcard(it) }
         )
+    }
+
+    override suspend fun getAllDecksWithFlashcards(): List<Deck> {
+        val decksWithFlashcardsEntity: List<DeckWithFlashcardsEntity> = deckDao.getAllDecksWithFlashcards()
+        return decksWithFlashcardsEntity.map { deckWithFlashcardsEntity ->
+            DeckEntityFactory.toDeck(deckWithFlashcardsEntity.deck).apply {
+                flashcards = deckWithFlashcardsEntity.flashcards.map { FlashcardEntityFactory.toFlashcard(it) }
+            }
+        }
     }
 
     override suspend fun deleteDeck(id: Long) {

@@ -47,4 +47,8 @@ interface DeckDao {
     @Transaction
     @Query("SELECT * FROM deck WHERE id = :deckId")
     suspend fun getDeckWithFlashcards(deckId: Int): List<DeckWithFlashcardsEntity>
+
+    @Transaction
+    @Query("SELECT * FROM deck")
+    suspend fun getAllDecksWithFlashcards(): List<DeckWithFlashcardsEntity>
 }

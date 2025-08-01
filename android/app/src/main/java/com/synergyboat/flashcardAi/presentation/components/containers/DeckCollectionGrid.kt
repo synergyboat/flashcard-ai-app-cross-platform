@@ -16,6 +16,9 @@ import androidx.navigation.NavController
 import com.synergyboat.flashcardAi.domain.entities.Deck
 import com.synergyboat.flashcardAi.presentation.components.cards.DeckCard
 import com.synergyboat.flashcardAi.presentation.router.Routes
+import kotlinx.serialization.json.Json
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -40,7 +43,8 @@ fun DeckCollectionGrid(
         ) {
             items(decks) { deck ->
                 DeckCard(deck = deck, onClick = {
-                    navController.navigate(Routes.DeckDetails.createRoute(deck.id?:-1 ))
+                    val encodedDeck = URLEncoder.encode(Json.encodeToString(deck), StandardCharsets.UTF_8.toString())
+                    navController.navigate(Routes.DeckDetails.createRoute(encodedDeck))
                 })
             }
         }

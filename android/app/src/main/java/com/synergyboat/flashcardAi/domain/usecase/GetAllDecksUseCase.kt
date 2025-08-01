@@ -7,6 +7,6 @@ class GetAllDecksUseCase(
     private val repository: DeckRepository
 ) {
     suspend operator fun invoke(): List<Deck> {
-        return repository.getAllDecks()
+        return repository.getAllDecksWithFlashcards()
     }
 }

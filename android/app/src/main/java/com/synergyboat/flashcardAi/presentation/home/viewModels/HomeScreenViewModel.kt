@@ -11,6 +11,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.util.logging.Logger
 import javax.inject.Inject
 
 @HiltViewModel
@@ -37,6 +38,9 @@ class HomeScreenViewModel @Inject constructor(
     fun refreshDecks() {
         viewModelScope.launch {
             _decks.value = getAllDecksUseCase()
+            // This function can be called to refresh the list of decks.
+            val logger = Logger.getLogger(HomeScreenViewModel::class.java.name)
+            logger.info("Decks refreshed: ${_decks.value} decks loaded.")
         }
     }
 }
