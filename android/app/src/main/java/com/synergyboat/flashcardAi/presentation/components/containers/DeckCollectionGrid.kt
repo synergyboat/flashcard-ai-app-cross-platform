@@ -3,8 +3,16 @@ package com.synergyboat.flashcardAi.presentation.components.containers
 import android.os.Build
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,9 +39,11 @@ fun DeckCollectionGrid(
     val isMac = Build.DEVICE.lowercase().contains("mac") // platform check fallback
     val crossAxisCount = if (isMac || screenWidthDp > 1000) 6 else 2
 
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .padding(horizontal = 16.dp)) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp)
+    ) {
         LazyVerticalGrid(
             columns = GridCells.Fixed(crossAxisCount),
             contentPadding = PaddingValues(horizontal = 16.dp),
@@ -43,7 +53,10 @@ fun DeckCollectionGrid(
         ) {
             items(decks) { deck ->
                 DeckCard(deck = deck, onClick = {
-                    val encodedDeck = URLEncoder.encode(Json.encodeToString(deck), StandardCharsets.UTF_8.toString())
+                    val encodedDeck = URLEncoder.encode(
+                        Json.encodeToString(deck),
+                        StandardCharsets.UTF_8.toString()
+                    )
                     navController.navigate(Routes.DeckDetails.createRoute(encodedDeck))
                 })
             }

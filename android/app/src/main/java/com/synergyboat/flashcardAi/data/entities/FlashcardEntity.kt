@@ -1,9 +1,11 @@
 package com.synergyboat.flashcardAi.data.entities
 
 
-import androidx.room.*
-import java.time.LocalDateTime
-import java.util.*
+import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.Index
+import androidx.room.PrimaryKey
+import java.util.Date
 
 @Entity(
     tableName = "flashcard",

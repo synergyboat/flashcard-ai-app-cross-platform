@@ -18,8 +18,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlin.math.PI
 import com.synergyboat.flashcardAi.R
+import kotlin.math.PI
 
 @Composable
 fun HomeEmptyState() {
@@ -54,7 +54,8 @@ fun HomeEmptyState() {
                 modifier = Modifier
                     .graphicsLayer {
                         scaleX = -1f
-                        rotationZ = -(PI / 2.9).toFloat() * (180f / PI.toFloat()) // Convert radians to degrees
+                        rotationZ =
+                            -(PI / 2.9).toFloat() * (180f / PI.toFloat()) // Convert radians to degrees
                     }
                     .height(80.dp)
                     .alpha(0.25f)

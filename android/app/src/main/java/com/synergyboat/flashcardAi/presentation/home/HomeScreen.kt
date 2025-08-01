@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -59,7 +58,10 @@ fun HomeScreen(
                 if (decks.isEmpty()) {
                     HomeEmptyState()
                 } else {
-                    DeckCollectionGrid(navController = navController, decks = decks, onDeckClick = {})
+                    DeckCollectionGrid(
+                        navController = navController,
+                        decks = decks,
+                        onDeckClick = {})
                 }
             }
         }

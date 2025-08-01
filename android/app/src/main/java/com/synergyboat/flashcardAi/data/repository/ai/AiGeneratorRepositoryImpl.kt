@@ -16,7 +16,7 @@ import javax.inject.Singleton
 class AiGeneratorRepositoryImpl @Inject constructor(
     private val aiPromptBuilderRepository: AiPromptBuilderRepository<ChatCompletionRequest>,
     private val openAIService: OpenAIService
-): AiGeneratorRepository {
+) : AiGeneratorRepository {
 
     @RequiresApi(Build.VERSION_CODES.O)
     override suspend fun generateDeck(
@@ -28,7 +28,11 @@ class AiGeneratorRepositoryImpl @Inject constructor(
         val logger = Logger.getLogger("AI Generator Repository")
         val jsonString = openAIService.getChatResponseJson(chatCompletionRequest)
         logger.info("Generated JSON response: $jsonString")
-        logger.info("Deck generated: ${DeckEntityFactory.fromJsonToDeck(jsonString).toString()} and count: $count")
+        logger.info(
+            "Deck generated: ${
+                DeckEntityFactory.fromJsonToDeck(jsonString)
+            } and count: $count"
+        )
         return DeckEntityFactory.fromJsonToDeck(jsonString)
     }
 

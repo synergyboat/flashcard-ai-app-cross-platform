@@ -19,7 +19,14 @@ class DbSizeLogger @Inject constructor(
         val sizeInKB = RowSizeBenchmark.getRowSizeInKB(row)
 
         if (log) {
-            logger.info("$tag | Row size for $name: $sizeInBytes bytes (${String.format("%.2f", sizeInKB)} KB)")
+            logger.info(
+                "$tag | Row size for $name: $sizeInBytes bytes (${
+                    String.format(
+                        "%.2f",
+                        sizeInKB
+                    )
+                } KB)"
+            )
         }
     }
 
@@ -33,7 +40,14 @@ class DbSizeLogger @Inject constructor(
         val totalSizeInKB = totalSizeInBytes / 1024.0
 
         if (log) {
-            logger.info("$tag | Total row size for $name: $totalSizeInBytes bytes (${String.format("%.2f", totalSizeInKB)} KB)")
+            logger.info(
+                "$tag | Total row size for $name: $totalSizeInBytes bytes (${
+                    String.format(
+                        "%.2f",
+                        totalSizeInKB
+                    )
+                } KB)"
+            )
         }
     }
 }

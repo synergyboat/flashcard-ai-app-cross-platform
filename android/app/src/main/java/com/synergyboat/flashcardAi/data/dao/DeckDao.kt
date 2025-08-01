@@ -1,6 +1,11 @@
 package com.synergyboat.flashcardAi.data.dao
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.Query
+import androidx.room.Transaction
+import androidx.room.Update
 import com.synergyboat.flashcardAi.data.entities.DeckEntity
 import com.synergyboat.flashcardAi.data.entities.DeckWithFlashcardsEntity
 import com.synergyboat.flashcardAi.data.entities.FlashcardEntity

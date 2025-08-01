@@ -1,4 +1,5 @@
 package com.synergyboat.flashcardAi.data.converter
+
 import android.os.Build
 import androidx.annotation.RequiresApi
 import com.synergyboat.flashcardAi.data.entities.DeckEntity
@@ -40,10 +41,18 @@ object DeckEntityFactory {
         val description = jsonObject.optString("description", "")
 
         val createdAt: Date? = jsonObject.optString("createdAt").takeIf { it.isNotEmpty() }?.let {
-            LocalDateTime.parse(it).let { dateTime -> Date.from(dateTime.atZone(java.time.ZoneId.systemDefault()).toInstant()) }
+            LocalDateTime.parse(it).let { dateTime ->
+                Date.from(
+                    dateTime.atZone(java.time.ZoneId.systemDefault()).toInstant()
+                )
+            }
         }
         val updatedAt: Date? = jsonObject.optString("updatedAt").takeIf { it.isNotEmpty() }?.let {
-            LocalDateTime.parse(it).let { dateTime -> Date.from(dateTime.atZone(java.time.ZoneId.systemDefault()).toInstant()) }
+            LocalDateTime.parse(it).let { dateTime ->
+                Date.from(
+                    dateTime.atZone(java.time.ZoneId.systemDefault()).toInstant()
+                )
+            }
         }
 
         val flashcardsJsonArray = jsonObject.optJSONArray("flashcards")

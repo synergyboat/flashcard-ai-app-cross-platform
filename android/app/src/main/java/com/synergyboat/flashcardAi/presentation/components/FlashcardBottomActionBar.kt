@@ -26,10 +26,14 @@ fun FlashcardBottomActionBar(
     val density = LocalDensity.current
 
     val insets = WindowInsetsCompat.toWindowInsetsCompat(view.rootWindowInsets)
-    val bottomPadding = with(density) { insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom.toDp() }
-    val leftPadding = with(density) { insets.getInsets(WindowInsetsCompat.Type.systemBars()).left.toDp() }
-    val rightPadding = with(density) { insets.getInsets(WindowInsetsCompat.Type.systemBars()).right.toDp() }
-    val topPadding = with(density) { insets.getInsets(WindowInsetsCompat.Type.systemBars()).top.toDp() }
+    val bottomPadding =
+        with(density) { insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom.toDp() }
+    val leftPadding =
+        with(density) { insets.getInsets(WindowInsetsCompat.Type.systemBars()).left.toDp() }
+    val rightPadding =
+        with(density) { insets.getInsets(WindowInsetsCompat.Type.systemBars()).right.toDp() }
+    val topPadding =
+        with(density) { insets.getInsets(WindowInsetsCompat.Type.systemBars()).top.toDp() }
 
     Row(
         modifier = Modifier
