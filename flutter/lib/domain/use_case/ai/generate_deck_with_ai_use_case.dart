@@ -23,7 +23,7 @@ class GenerateDeckWithAIUseCase {
     }
     // Assuming the generated flashcards are in a format that can be parsed into a Deck
     Deck deck = Deck.fromJson(json.decode(response));
-    print("Generated deck: ${deck.toString()}");
+    //print("Generated deck: ${deck.toString()}");
     return deck;
   }
 }
