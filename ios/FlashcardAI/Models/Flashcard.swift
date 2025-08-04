@@ -1,15 +1,15 @@
 import Foundation
 
 struct Flashcard: Codable {
-    let id: String
-    let deckId: String
+    let id: Int?
+    let deckId: Int
     let question: String
     let answer: String
     let createdAt: Date
     let updatedAt: Date
     var lastReviewed: Date?
     
-    init(id: String = UUID().uuidString, deckId: String, question: String, answer: String, createdAt: Date = Date(), updatedAt: Date = Date(), lastReviewed: Date? = nil) {
+    init(id: Int? = nil, deckId: Int, question: String, answer: String, createdAt: Date = Date(), updatedAt: Date = Date(), lastReviewed: Date? = nil) {
         self.id = id
         self.deckId = deckId
         self.question = question

@@ -18,27 +18,27 @@ class AIService {
         print("🌐 Using real OpenAI API")
         let prompt = buildPrompt(topic: request.topic, cardCount: request.cardCount)
         
-        let url = URL(string: "https://api.openai.com/v1/chat/completions")!
+        let url = URL(string: APIConfig.OpenAI.chatCompletionsURL)!
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = "POST"
         urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
         urlRequest.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         
         let requestBody: [String: Any] = [
-            "model": "gpt-3.5-turbo",
+            "model": APIConfig.OpenAI.model,
             "messages": [
                 [
                     "role": "system",
-                    "content": "You are an educational content generator that creates flashcards in JSON format. Always respond with valid JSON only."
+                    "content": PromptsConfig.systemMessage
                 ],
                 [
                     "role": "user",
                     "content": prompt
                 ]
             ],
-            "temperature": 0.3,
-            "max_tokens": 1000,
-            "seed": 6
+            "temperature": APIConfig.OpenAI.temperature,
+            "max_tokens": APIConfig.OpenAI.maxTokens,
+            "seed": APIConfig.OpenAI.seed
         ]
         
         do {
@@ -83,25 +83,9 @@ class AIService {
     }
     
     private func buildPrompt(topic: String, cardCount: Int) -> String {
-        return """
-        Generate \(cardCount) educational flashcards about "\(topic)".
-        
-        Respond with ONLY a JSON object in this exact format:
-        {
-          "deck": {
-            "name": "Deck name here",
-            "description": "Brief description of the deck"
-          },
-          "flashcards": [
-            {
-              "question": "Question text here",
-              "answer": "Answer text here"
-            }
-          ]
-        }
-        
-        Make the questions and answers educational, clear, and concise. The deck name should be related to the topic.
-        """
+        return PromptsConfig.userPromptTemplate
+            .replacingOccurrences(of: "{cardCount}", with: "\(cardCount)")
+            .replacingOccurrences(of: "{topic}", with: topic)
     }
     
     private func parseAIResponse(content: String, topic: String) throws -> AIGenerationResponse {
@@ -130,14 +114,14 @@ class AIService {
             }
             
             let deck = AIGenerationResponse.DeckInfo(
-                name: deckInfo["name"] as? String ?? "\(topic) Flashcards",
-                description: deckInfo["description"] as? String ?? "Flashcards about \(topic)"
+                name: deckInfo["name"] as? String ?? PromptsConfig.FallbackNames.deckName,
+                description: deckInfo["description"] as? String ?? PromptsConfig.FallbackNames.deckDescription
             )
             
             let flashcards = flashcardsArray.enumerated().map { index, card in
                 AIGenerationResponse.FlashcardInfo(
-                    question: card["question"] as? String ?? "Question \(index + 1)",
-                    answer: card["answer"] as? String ?? "Answer \(index + 1)"
+                    question: card["question"] as? String ?? "\(PromptsConfig.FallbackNames.questionFallback) \(index + 1)",
+                    answer: card["answer"] as? String ?? "\(PromptsConfig.FallbackNames.answerFallback) \(index + 1)"
                 )
             }
             

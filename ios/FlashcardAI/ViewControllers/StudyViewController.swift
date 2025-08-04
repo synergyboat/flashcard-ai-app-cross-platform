@@ -31,7 +31,7 @@ class StudyViewController: UIViewController {
     }
     
     private func setupUI() {
-        view.backgroundColor = UIColor(red: 248/255, green: 249/255, blue: 250/255, alpha: 1.0)
+        view.backgroundColor = UIColor(red: 254/255, green: 248/255, blue: 255/255, alpha: 1.0)
         
         setupHeaderView()
         setupCardContainer()
@@ -53,7 +53,7 @@ class StudyViewController: UIViewController {
         
         closeButton.setImage(UIImage(systemName: "xmark"), for: .normal)
         closeButton.tintColor = UIColor(red: 102/255, green: 102/255, blue: 102/255, alpha: 1.0)
-        closeButton.backgroundColor = UIColor(red: 248/255, green: 249/255, blue: 250/255, alpha: 1.0)
+        closeButton.backgroundColor = UIColor(red: 254/255, green: 248/255, blue: 255/255, alpha: 1.0)
         closeButton.layer.cornerRadius = 20
         closeButton.translatesAutoresizingMaskIntoConstraints = false
         closeButton.addTarget(self, action: #selector(closeButtonTapped), for: .touchUpInside)
@@ -149,9 +149,9 @@ class StudyViewController: UIViewController {
     
     private func moveToNextCard() {
         // Mark current card as reviewed
-        if currentIndex < flashcards.count {
+        if currentIndex < flashcards.count, let flashcardId = flashcards[currentIndex].id {
             Task {
-                await databaseService.updateFlashcardReview(id: flashcards[currentIndex].id)
+                await databaseService.updateFlashcardReview(id: flashcardId)
             }
         }
         

@@ -10,7 +10,7 @@ class HomeViewController: UIViewController {
         layout.sectionInset = UIEdgeInsets(top: 16, left: 16, bottom: 100, right: 16)
         
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-        collectionView.backgroundColor = UIColor(red: 248/255, green: 249/255, blue: 250/255, alpha: 1.0)
+        collectionView.backgroundColor = UIColor(red: 254/255, green: 248/255, blue: 255/255, alpha: 1.0)
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         return collectionView
     }()
@@ -82,8 +82,8 @@ class HomeViewController: UIViewController {
     }
     
     private func setupUI() {
-        title = "Flashcard AI"
-        view.backgroundColor = UIColor(red: 248/255, green: 249/255, blue: 250/255, alpha: 1.0)
+        title = AppConfig.ScreenTitles.home
+        view.backgroundColor = UIColor(red: 254/255, green: 248/255, blue: 255/255, alpha: 1.0)
         
         view.addSubview(collectionView)
         view.addSubview(emptyStateView)
@@ -126,10 +126,7 @@ class HomeViewController: UIViewController {
         
         aiButton.addTarget(self, action: #selector(aiButtonTapped), for: .touchUpInside)
         
-        // Add long press gesture for benchmark
-        let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(aiButtonLongPressed))
-        longPressGesture.minimumPressDuration = 2.0
-        aiButton.addGestureRecognizer(longPressGesture)
+
     }
     
     private func setupCollectionView() {
@@ -158,21 +155,7 @@ class HomeViewController: UIViewController {
         navigationController?.pushViewController(aiGenerateVC, animated: true)
     }
     
-    @objc private func aiButtonLongPressed(_ gesture: UILongPressGestureRecognizer) {
-        if gesture.state == .began {
-            // Show benchmark alert
-            let alert = UIAlertController(title: "Benchmark", message: "Run performance benchmark?", preferredStyle: .alert)
-            
-            alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-            alert.addAction(UIAlertAction(title: "Run", style: .default) { _ in
-                Task {
-                    await BenchmarkService.shared.runFullBenchmark()
-                }
-            })
-            
-            present(alert, animated: true)
-        }
-    }
+
 }
 
 // MARK: - UICollectionViewDataSource

@@ -21,8 +21,8 @@ class DeckDetailsViewController: UIViewController {
     }
     
     private func setupUI() {
-        title = "Deck Details"
-        view.backgroundColor = UIColor(red: 248/255, green: 249/255, blue: 250/255, alpha: 1.0)
+        title = AppConfig.ScreenTitles.deckDetails
+        view.backgroundColor = UIColor(red: 254/255, green: 248/255, blue: 255/255, alpha: 1.0)
         
         setupHeaderView()
         setupTableView()
@@ -56,7 +56,7 @@ class DeckDetailsViewController: UIViewController {
     }
     
     private func setupTableView() {
-        tableView.backgroundColor = UIColor(red: 248/255, green: 249/255, blue: 250/255, alpha: 1.0)
+        tableView.backgroundColor = UIColor(red: 254/255, green: 248/255, blue: 255/255, alpha: 1.0)
         tableView.delegate = self
         tableView.dataSource = self
         tableView.register(FlashcardTableViewCell.self, forCellReuseIdentifier: FlashcardTableViewCell.identifier)
@@ -142,10 +142,10 @@ class DeckDetailsViewController: UIViewController {
     }
     
     private func loadFlashcards() {
-        guard let deck = deck else { return }
+        guard let deck = deck, let deckId = deck.id else { return }
         
         Task {
-            flashcards = await databaseService.getFlashcards(deckId: deck.id)
+            flashcards = await databaseService.getFlashcards(deckId: deckId)
             
             DispatchQueue.main.async {
                 self.updateHeaderContent()
@@ -181,10 +181,10 @@ class DeckDetailsViewController: UIViewController {
     }
     
     private func deleteDeck() {
-        guard let deck = deck else { return }
+        guard let deck = deck, let deckId = deck.id else { return }
         
         Task {
-            await databaseService.deleteDeck(id: deck.id)
+            await databaseService.deleteDeck(id: deckId)
             
             DispatchQueue.main.async {
                 self.navigationController?.popViewController(animated: true)
