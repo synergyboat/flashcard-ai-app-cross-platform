@@ -1,4 +1,47 @@
 import Foundation
+import UIKit
+
+// Configuration structs (temporary inline until Xcode project includes them)
+struct APIConfig {
+    struct OpenAI {
+        static let chatCompletionsURL = "https://api.openai.com/v1/chat/completions"
+        static let model = "gpt-3.5-turbo"
+        static let temperature: Double = 0.3
+        static let maxTokens = 1000
+        static let seed = 6
+    }
+}
+
+struct PromptsConfig {
+    static let systemMessage = "You are an educational content generator that creates flashcards in JSON format. Always respond with valid JSON only."
+    
+    static let userPromptTemplate = """
+        Generate {cardCount} educational flashcards about "{topic}".
+        
+        Respond with ONLY a JSON object in this exact format:
+        {
+          "deck": {
+            "name": "Deck name here",
+            "description": "Brief description of the deck"
+          },
+          "flashcards": [
+            {
+              "question": "Question text here",
+              "answer": "Answer text here"
+            }
+          ]
+        }
+        
+        Make the questions and answers educational, clear, and concise. The deck name should be related to the topic.
+        """
+    
+    struct FallbackNames {
+        static let deckName = "Generated Flashcards"
+        static let deckDescription = "AI-generated flashcards"
+        static let questionFallback = "Sample Question"
+        static let answerFallback = "Sample Answer"
+    }
+}
 
 class AIService {
     static let shared = AIService()
@@ -8,17 +51,14 @@ class AIService {
     private init() {}
     
     func generateFlashcards(request: AIGenerationRequest) async throws -> AIGenerationResponse {
-        print("🔧 AI Service: Starting generation for \(request.topic)")
-        
         guard !apiKey.isEmpty else {
-            print("⚠️ No API key found, using mock data")
             return generateMockFlashcards(request: request)
         }
-        
-        print("🌐 Using real OpenAI API")
         let prompt = buildPrompt(topic: request.topic, cardCount: request.cardCount)
         
-        let url = URL(string: APIConfig.OpenAI.chatCompletionsURL)!
+        guard let url = URL(string: APIConfig.OpenAI.chatCompletionsURL) else {
+            throw AIError.apiError
+        }
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = "POST"
         urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -42,23 +82,15 @@ class AIService {
         ]
         
         do {
-            print("📡 Making API request to OpenAI...")
             urlRequest.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
             
             let (data, response) = try await URLSession.shared.data(for: urlRequest)
             
             guard let httpResponse = response as? HTTPURLResponse else {
-                print("❌ Invalid HTTP response")
                 throw AIError.apiError
             }
             
-            print("📈 API Response status: \(httpResponse.statusCode)")
-            
             guard httpResponse.statusCode == 200 else {
-                print("❌ API Error - Status: \(httpResponse.statusCode)")
-                if let errorData = String(data: data, encoding: .utf8) {
-                    print("Error response: \(errorData)")
-                }
                 throw AIError.apiError
             }
             
@@ -66,17 +98,12 @@ class AIService {
             guard let choices = json?["choices"] as? [[String: Any]],
                   let message = choices.first?["message"] as? [String: Any],
                   let content = message["content"] as? String else {
-                print("❌ Invalid API response structure")
                 throw AIError.invalidResponse
             }
-            
-            print("✅ Got API response, parsing content...")
             // Parse the JSON response
             return try parseAIResponse(content: content, topic: request.topic)
             
         } catch {
-            print("❌ AI generation error: \(error)")
-            print("🔄 Falling back to mock generation")
             // Fall back to mock generation
             return generateMockFlashcards(request: request)
         }
@@ -133,7 +160,6 @@ class AIService {
     }
     
     func generateMockFlashcards(request: AIGenerationRequest) -> AIGenerationResponse {
-        print("🎭 Generating mock flashcards for: \(request.topic)")
         let topic = request.topic.lowercased()
         var questions: [(String, String)] = []
         
@@ -184,7 +210,6 @@ class AIService {
             description: "Generated flashcards about \(request.topic) - \(flashcards.count) cards covering key concepts and fundamentals."
         )
         
-        print("✅ Mock generation completed: \(flashcards.count) cards")
         return AIGenerationResponse(deck: deck, flashcards: flashcards)
     }
     

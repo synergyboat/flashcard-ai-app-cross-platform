@@ -206,12 +206,10 @@ class StudyViewController: UIViewController {
 // MARK: - FlashcardViewDelegate
 extension StudyViewController: FlashcardViewDelegate {
     func flashcardDidSwipeLeft(_ flashcardView: FlashcardView) {
-        print("Swipe left - moving to next card")
         moveToNextCard()
     }
     
     func flashcardDidSwipeRight(_ flashcardView: FlashcardView) {
-        print("Swipe right - moving to next card")
         moveToNextCard()
     }
 } 

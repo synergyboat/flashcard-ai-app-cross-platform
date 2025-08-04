@@ -20,6 +20,7 @@ class DeckDetailsViewController: UIViewController {
         loadFlashcards()
     }
     
+    
     private func setupUI() {
         title = AppConfig.ScreenTitles.deckDetails
         view.backgroundColor = UIColor(red: 254/255, green: 248/255, blue: 255/255, alpha: 1.0)
@@ -131,8 +132,8 @@ class DeckDetailsViewController: UIViewController {
         deckNameLabel.text = deck.name
         cardCountLabel.text = "\(flashcards.count) card\(flashcards.count != 1 ? "s" : "")"
         
-        if let description = deck.description, !description.isEmpty {
-            descriptionLabel.text = description
+        if !deck.description.isEmpty {
+            descriptionLabel.text = deck.description
             descriptionLabel.isHidden = false
         } else {
             descriptionLabel.isHidden = true
@@ -248,7 +249,9 @@ extension DeckDetailsViewController: UITableViewDataSource {
             return cell
         }
         
-        let cell = tableView.dequeueReusableCell(withIdentifier: FlashcardTableViewCell.identifier, for: indexPath) as! FlashcardTableViewCell
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: FlashcardTableViewCell.identifier, for: indexPath) as? FlashcardTableViewCell else {
+            return UITableViewCell()
+        }
         cell.configure(with: flashcards[indexPath.row], number: indexPath.row + 1)
         return cell
     }

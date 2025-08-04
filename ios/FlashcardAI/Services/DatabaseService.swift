@@ -1,6 +1,9 @@
 import Foundation
 import SQLite3
 
+// SQLITE_TRANSIENT constant for safe string binding
+private let SQLITE_TRANSIENT = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
+
 class DatabaseService: @unchecked Sendable {
     static let shared = DatabaseService()
     
@@ -10,38 +13,35 @@ class DatabaseService: @unchecked Sendable {
     
     private init() {}
     
-    func initialize() async {
-        if isInitialized { return }
+    func initialize() async -> Bool {
+        if isInitialized { return true }
         
-        await withCheckedContinuation { continuation in
+        return await withCheckedContinuation { continuation in
             dbQueue.async {
                 self.performInitialization()
-                continuation.resume()
+                continuation.resume(returning: self.isInitialized)
             }
         }
     }
     
     private func performInitialization() {
-        print("🗄️ DatabaseService: Starting SQLite initialization...")
-        
         guard let documentsPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first else {
-            fatalError("Could not find documents directory")
+            return
         }
         
         let dbPath = (documentsPath as NSString).appendingPathComponent("flashcard_app.db")
-        print("📂 Database path: \(dbPath)")
         
         if sqlite3_open(dbPath, &db) == SQLITE_OK {
-            print("✅ DatabaseService: SQLite database opened successfully")
-            
             // Enable foreign key constraints
             sqlite3_exec(db, "PRAGMA foreign_keys = ON", nil, nil, nil)
             
             createTablesSync()
             isInitialized = true
         } else {
-            print("❌ Unable to open database")
-            fatalError("Unable to open database")
+            if db != nil {
+                sqlite3_close(db)
+                db = nil
+            }
         }
     }
     
@@ -50,7 +50,7 @@ class DatabaseService: @unchecked Sendable {
             CREATE TABLE IF NOT EXISTS deck (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL,
-                description TEXT,
+                description TEXT NOT NULL,
                 createdAt TEXT NOT NULL,
                 updatedAt TEXT NOT NULL
             );
@@ -69,23 +69,16 @@ class DatabaseService: @unchecked Sendable {
             );
         """
         
-        if sqlite3_exec(db, createDeckTable, nil, nil, nil) == SQLITE_OK {
-            print("✅ Deck table created successfully")
-        } else {
-            print("❌ Failed to create deck table")
-        }
-        
-        if sqlite3_exec(db, createFlashcardTable, nil, nil, nil) == SQLITE_OK {
-            print("✅ Flashcard table created successfully")
-        } else {
-            print("❌ Failed to create flashcard table")
-        }
+        sqlite3_exec(db, createDeckTable, nil, nil, nil)
+        sqlite3_exec(db, createFlashcardTable, nil, nil, nil)
     }
     
     // MARK: - Deck Operations
     
     func getDecks() async -> [Deck] {
-        await initialize()
+        guard await initialize() else {
+            return []
+        }
         
         return await withCheckedContinuation { continuation in
             dbQueue.async {
@@ -111,7 +104,7 @@ class DatabaseService: @unchecked Sendable {
             while sqlite3_step(statement) == SQLITE_ROW {
                 let id = Int(sqlite3_column_int(statement, 0))
                 let name = String(cString: sqlite3_column_text(statement, 1))
-                let description = sqlite3_column_text(statement, 2) != nil ? String(cString: sqlite3_column_text(statement, 2)) : nil
+                let description = String(cString: sqlite3_column_text(statement, 2))
                 let createdAt = String(cString: sqlite3_column_text(statement, 3))
                 let updatedAt = String(cString: sqlite3_column_text(statement, 4))
                 let flashcardCount = Int(sqlite3_column_int(statement, 5))
@@ -127,8 +120,6 @@ class DatabaseService: @unchecked Sendable {
                 )
                 decks.append(deck)
             }
-        } else {
-            print("❌ Failed to prepare getDecks query")
         }
         
         sqlite3_finalize(statement)
@@ -136,7 +127,9 @@ class DatabaseService: @unchecked Sendable {
     }
     
     func getDeck(id: Int) async -> Deck? {
-        await initialize()
+        guard await initialize() else {
+            return nil
+        }
         
         return await withCheckedContinuation { continuation in
             dbQueue.async {
@@ -147,7 +140,13 @@ class DatabaseService: @unchecked Sendable {
     }
     
     private func getDeckSync(id: Int) -> Deck? {
-        let query = "SELECT id, name, description, createdAt, updatedAt FROM deck WHERE id = ?"
+        let query = """
+            SELECT d.id, d.name, d.description, d.createdAt, d.updatedAt, COUNT(f.id) as flashcardCount 
+            FROM deck d 
+            LEFT JOIN flashcard f ON d.id = f.deckId 
+            WHERE d.id = ? 
+            GROUP BY d.id
+        """
         
         var statement: OpaquePointer?
         if sqlite3_prepare_v2(db, query, -1, &statement, nil) == SQLITE_OK {
@@ -155,10 +154,29 @@ class DatabaseService: @unchecked Sendable {
             
             if sqlite3_step(statement) == SQLITE_ROW {
                 let deckId = Int(sqlite3_column_int(statement, 0))
-                let name = String(cString: sqlite3_column_text(statement, 1))
-                let description = sqlite3_column_text(statement, 2) != nil ? String(cString: sqlite3_column_text(statement, 2)) : nil
+                
+                // Use sqlite3_column_bytes to get the actual length and handle encoding properly
+                let nameLength = sqlite3_column_bytes(statement, 1)
+                let namePtr = sqlite3_column_text(statement, 1)
+                let name: String
+                if let namePtr = namePtr, nameLength > 0 {
+                    name = String(data: Data(bytes: namePtr, count: Int(nameLength)), encoding: .utf8) ?? ""
+                } else {
+                    name = ""
+                }
+                
+                let descLength = sqlite3_column_bytes(statement, 2)
+                let descPtr = sqlite3_column_text(statement, 2)
+                let description: String
+                if let descPtr = descPtr, descLength > 0 {
+                    description = String(data: Data(bytes: descPtr, count: Int(descLength)), encoding: .utf8) ?? ""
+                } else {
+                    description = ""
+                }
+                
                 let createdAt = String(cString: sqlite3_column_text(statement, 3))
                 let updatedAt = String(cString: sqlite3_column_text(statement, 4))
+                let flashcardCount = Int(sqlite3_column_int(statement, 5))
                 
                 let dateFormatter = ISO8601DateFormatter()
                 let deck = Deck(
@@ -166,22 +184,23 @@ class DatabaseService: @unchecked Sendable {
                     name: name,
                     description: description,
                     createdAt: dateFormatter.date(from: createdAt) ?? Date(),
-                    updatedAt: dateFormatter.date(from: updatedAt) ?? Date()
+                    updatedAt: dateFormatter.date(from: updatedAt) ?? Date(),
+                    flashcardCount: flashcardCount
                 )
                 
                 sqlite3_finalize(statement)
                 return deck
             }
-        } else {
-            print("❌ Failed to prepare getDeck query")
         }
         
         sqlite3_finalize(statement)
         return nil
     }
     
-    func createDeck(name: String, description: String?) async -> Int {
-        await initialize()
+    func createDeck(name: String, description: String) async -> Int {
+        guard await initialize() else {
+            return -1
+        }
         
         return await withCheckedContinuation { continuation in
             dbQueue.async {
@@ -194,25 +213,20 @@ class DatabaseService: @unchecked Sendable {
     private func createDeckSync(name: String, description: String?) -> Int {
         let now = ISO8601DateFormatter().string(from: Date())
         let query = "INSERT INTO deck (name, description, createdAt, updatedAt) VALUES (?, ?, ?, ?)"
+        let desc = description ?? ""
         
         var statement: OpaquePointer?
         if sqlite3_prepare_v2(db, query, -1, &statement, nil) == SQLITE_OK {
-            sqlite3_bind_text(statement, 1, name, -1, nil)
-            sqlite3_bind_text(statement, 2, description, -1, nil)
-            sqlite3_bind_text(statement, 3, now, -1, nil)
-            sqlite3_bind_text(statement, 4, now, -1, nil)
+            sqlite3_bind_text(statement, 1, name, -1, SQLITE_TRANSIENT)
+            sqlite3_bind_text(statement, 2, desc, -1, SQLITE_TRANSIENT)
+            sqlite3_bind_text(statement, 3, now, -1, SQLITE_TRANSIENT)
+            sqlite3_bind_text(statement, 4, now, -1, SQLITE_TRANSIENT)
             
             if sqlite3_step(statement) == SQLITE_DONE {
                 let id = Int(sqlite3_last_insert_rowid(db))
-                print("✅ Created deck with ID: \(id)")
                 sqlite3_finalize(statement)
                 return id
-            } else {
-                let errorMessage = String(cString: sqlite3_errmsg(db))
-                print("❌ Failed to create deck: \(errorMessage)")
             }
-        } else {
-            print("❌ Failed to prepare createDeck query")
         }
         
         sqlite3_finalize(statement)
@@ -220,7 +234,9 @@ class DatabaseService: @unchecked Sendable {
     }
     
     func deleteDeck(id: Int) async {
-        await initialize()
+        guard await initialize() else {
+            return
+        }
         
         await withCheckedContinuation { continuation in
             dbQueue.async {
@@ -237,13 +253,7 @@ class DatabaseService: @unchecked Sendable {
         if sqlite3_prepare_v2(db, query, -1, &statement, nil) == SQLITE_OK {
             sqlite3_bind_int(statement, 1, Int32(id))
             
-            if sqlite3_step(statement) == SQLITE_DONE {
-                print("🗑️ Deleted deck with ID: \(id)")
-            } else {
-                print("❌ Failed to delete deck")
-            }
-        } else {
-            print("❌ Failed to prepare deleteDeck query")
+            sqlite3_step(statement)
         }
         
         sqlite3_finalize(statement)
@@ -252,7 +262,9 @@ class DatabaseService: @unchecked Sendable {
     // MARK: - Flashcard Operations
     
     func getFlashcards(deckId: Int) async -> [Flashcard] {
-        await initialize()
+        guard await initialize() else {
+            return []
+        }
         
         return await withCheckedContinuation { continuation in
             dbQueue.async {
@@ -277,7 +289,12 @@ class DatabaseService: @unchecked Sendable {
                 let answer = String(cString: sqlite3_column_text(statement, 3))
                 let createdAt = String(cString: sqlite3_column_text(statement, 4))
                 let updatedAt = String(cString: sqlite3_column_text(statement, 5))
-                let lastReviewed = sqlite3_column_text(statement, 6) != nil ? String(cString: sqlite3_column_text(statement, 6)!) : nil
+                let lastReviewed: String?
+                if let lastReviewedPtr = sqlite3_column_text(statement, 6) {
+                    lastReviewed = String(cString: lastReviewedPtr)
+                } else {
+                    lastReviewed = nil
+                }
                 
                 let dateFormatter = ISO8601DateFormatter()
                 let flashcard = Flashcard(
@@ -287,12 +304,10 @@ class DatabaseService: @unchecked Sendable {
                     answer: answer,
                     createdAt: dateFormatter.date(from: createdAt) ?? Date(),
                     updatedAt: dateFormatter.date(from: updatedAt) ?? Date(),
-                    lastReviewed: lastReviewed != nil ? dateFormatter.date(from: lastReviewed!) : nil
+                    lastReviewed: lastReviewed.flatMap { dateFormatter.date(from: $0) }
                 )
                 flashcards.append(flashcard)
             }
-        } else {
-            print("❌ Failed to prepare getFlashcards query")
         }
         
         sqlite3_finalize(statement)
@@ -300,7 +315,9 @@ class DatabaseService: @unchecked Sendable {
     }
     
     func createFlashcards(_ flashcards: [Flashcard]) async {
-        await initialize()
+        guard await initialize() else {
+            return
+        }
         
         await withCheckedContinuation { continuation in
             dbQueue.async {
@@ -320,21 +337,25 @@ class DatabaseService: @unchecked Sendable {
             if sqlite3_prepare_v2(db, query, -1, &statement, nil) == SQLITE_OK {
                 let createdAtStr = dateFormatter.string(from: flashcard.createdAt)
                 let updatedAtStr = dateFormatter.string(from: flashcard.updatedAt)
-                let lastReviewedStr = flashcard.lastReviewed != nil ? dateFormatter.string(from: flashcard.lastReviewed!) : nil
+                let lastReviewedStr: String?
+                if let lastReviewed = flashcard.lastReviewed {
+                    lastReviewedStr = dateFormatter.string(from: lastReviewed)
+                } else {
+                    lastReviewedStr = nil
+                }
                 
                 sqlite3_bind_int(statement, 1, Int32(flashcard.deckId))
-                sqlite3_bind_text(statement, 2, flashcard.question, -1, nil)
-                sqlite3_bind_text(statement, 3, flashcard.answer, -1, nil)
-                sqlite3_bind_text(statement, 4, createdAtStr, -1, nil)
-                sqlite3_bind_text(statement, 5, updatedAtStr, -1, nil)
-                sqlite3_bind_text(statement, 6, lastReviewedStr, -1, nil)
-                
-                if sqlite3_step(statement) == SQLITE_DONE {
-                    print("✅ Successfully created flashcard for deck \(flashcard.deckId)")
+                sqlite3_bind_text(statement, 2, flashcard.question, -1, SQLITE_TRANSIENT)
+                sqlite3_bind_text(statement, 3, flashcard.answer, -1, SQLITE_TRANSIENT)
+                sqlite3_bind_text(statement, 4, createdAtStr, -1, SQLITE_TRANSIENT)
+                sqlite3_bind_text(statement, 5, updatedAtStr, -1, SQLITE_TRANSIENT)
+                if let lastReviewedStr = lastReviewedStr {
+                    sqlite3_bind_text(statement, 6, lastReviewedStr, -1, SQLITE_TRANSIENT)
                 } else {
-                    let errorMessage = String(cString: sqlite3_errmsg(db))
-                    print("❌ Failed to create flashcard: \(errorMessage)")
+                    sqlite3_bind_null(statement, 6)
                 }
+                
+                sqlite3_step(statement)
             }
             
             sqlite3_finalize(statement)
@@ -342,7 +363,9 @@ class DatabaseService: @unchecked Sendable {
     }
     
     func updateFlashcardReview(id: Int) async {
-        await initialize()
+        guard await initialize() else {
+            return
+        }
         
         await withCheckedContinuation { continuation in
             dbQueue.async {
@@ -358,16 +381,10 @@ class DatabaseService: @unchecked Sendable {
         var statement: OpaquePointer?
         
         if sqlite3_prepare_v2(db, query, -1, &statement, nil) == SQLITE_OK {
-            sqlite3_bind_text(statement, 1, now, -1, nil)
+            sqlite3_bind_text(statement, 1, now, -1, SQLITE_TRANSIENT)
             sqlite3_bind_int(statement, 2, Int32(id))
             
-            if sqlite3_step(statement) == SQLITE_DONE {
-                print("✅ Updated review for flashcard \(id)")
-            } else {
-                print("❌ Failed to update flashcard review")
-            }
-        } else {
-            print("❌ Failed to prepare updateFlashcardReview query")
+            sqlite3_step(statement)
         }
         
         sqlite3_finalize(statement)

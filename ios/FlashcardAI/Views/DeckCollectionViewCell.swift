@@ -79,8 +79,8 @@ class DeckCollectionViewCell: UICollectionViewCell {
         let cardCount = deck.flashcardCount ?? 0
         cardCountLabel.text = "\(cardCount) card\(cardCount != 1 ? "s" : "")"
         
-        if let description = deck.description, !description.isEmpty {
-            descriptionLabel.text = description
+        if !deck.description.isEmpty {
+            descriptionLabel.text = deck.description
             descriptionLabel.isHidden = false
         } else {
             descriptionLabel.isHidden = true
