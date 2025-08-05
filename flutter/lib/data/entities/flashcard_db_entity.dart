@@ -101,6 +101,18 @@ class FlashcardDbEntity {
     );
   }
 
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'deckId': deckId,
+      'question': question,
+      'answer': answer,
+      'createdAt': createdAt?.toIso8601String(),
+      'updatedAt': updatedAt?.toIso8601String(),
+      'lastReviewed': lastReviewed?.toIso8601String(),
+    };
+  }
+
   Flashcard toFlashcard() {
     return Flashcard(
       id: id,

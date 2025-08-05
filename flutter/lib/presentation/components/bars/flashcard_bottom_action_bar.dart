@@ -26,9 +26,9 @@ class FlashcardBottomActionBar extends StatelessWidget implements PreferredSizeW
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          if (leading != null) leading!,
-          if (center != null) center!,
-          if (trailing != null) trailing!,
+          if (leading != null) leading! else const SizedBox(width: 16.0, height: 16.0),
+          if (center != null) center! else const SizedBox(width: 16.0, height: 16.0),
+          if (trailing != null) trailing! else const SizedBox(width: 16.0, height: 16.0),
         ],
       ),
     );

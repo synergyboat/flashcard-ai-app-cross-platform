@@ -1,4 +1,6 @@
+import 'package:flashcard/core/utils/random_gradient_generator.dart';
 import 'package:flashcard/domain/use_case/deck/create_new_deck_use_case.dart';
+import 'package:flashcard/domain/use_case/deck/delete_deck_use_case.dart';
 import 'package:flashcard/domain/use_case/deck/get_flashcards_from_deck_use_case.dart';
 import 'package:flashcard/presentation/components/bars/empty_bottom_action_bar.dart';
 import 'package:flashcard/presentation/components/bars/flashcard_app_bar.dart';
@@ -22,7 +24,7 @@ class DeckDetailsScreen extends StatefulWidget {
 
 class _DeckDetailsScreenState extends State<DeckDetailsScreen> with TickerProviderStateMixin {
   late final Deck deck = widget.deck;
-  final CreateNewDeckUseCase _createNewDeckUseCase = getIt<CreateNewDeckUseCase>();
+  final DeleteDeckUseCase _deleteDeckUseCase = getIt<DeleteDeckUseCase>();
   final Logger _logger = getIt<Logger>();
   late final List<Flashcard> _flashcards = deck.flashcards;
 
@@ -93,125 +95,251 @@ class _DeckDetailsScreenState extends State<DeckDetailsScreen> with TickerProvid
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: FlashcardAppBar(title: "Deck Details"),
+      appBar: FlashcardAppBar(title: deck.name,
+      actions: IconButton(
+        highlightColor: Colors.redAccent.withValues(alpha: 0.1),
+          onPressed: (){_showDeleteAlertDialog(context, deck);},
+          icon: const Icon(Icons.delete, color: Colors.redAccent, size: 24.0)
+      ),),
       bottomNavigationBar: EmptyBottomActionBar(
-        child:  GradientButton(
-            text: "Close",
-            onPressed: ()=>{
-              context.go("/home")
-            }
+        child: GradientButton(
+          text: "Close",
+          onPressed: () => context.go("/home"),
         ),
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 64.0, horizontal: 16.0),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return Column(
-                children: [
-                  Stack(
-                    alignment: Alignment.center,
-                    children: List.generate(3, (i) {
-                      int index = currentIndex + i;
-                      if (index >= _flashcards.length) return const SizedBox.shrink();
+          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Description at top
+              if (deck.description != null && deck.description!.isNotEmpty)
+                Text(
+                  deck.description!,
+                  style: const TextStyle(fontSize: 14, color: Colors.grey),
+                  textAlign: TextAlign.center,
+                ),
+              const SizedBox(height: 16),
 
-                      final flashcard = _flashcards[index];
-                      bool isTopCard = i == 0;
-                      bool isSecondCard = i == 1;
-                      double topOffset = i * -12.0;
-                      double baseScale = 1.0 - (i * 0.05);
+              // Card stack - use Expanded to take remaining space
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return Stack(
+                      alignment: Alignment.center,
+                      children: List.generate(3, (i) {
+                        int index = currentIndex + i;
+                        if (index >= _flashcards.length) return const SizedBox.shrink();
 
-                      double adjustedScale = baseScale;
+                        final flashcard = _flashcards[index];
+                        bool isTopCard = i == 0;
+                        bool isSecondCard = i == 1;
+                        double topOffset = i * -12.0;
+                        double baseScale = 1.0 - (i * 0.05);
 
-                      if (isSecondCard) {
-                        double progress = (_dragOffset.abs() / 150).clamp(0.0, 1.0);
-                        adjustedScale = baseScale + (1.0 - baseScale - 0.05) * progress;
-                      }
+                        double adjustedScale = baseScale;
 
-                      Widget card = Container(
-                        height: constraints.maxHeight - 0,
-                        width: constraints.maxWidth,
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: Colors.grey.shade300,
-                            width: 1.0,
-                          ),
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(64.0),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Colors.black26,
-                              blurRadius: 10,
-                              offset: Offset(0, 4),
+                        if (isSecondCard) {
+                          double progress = (_dragOffset.abs() / 150).clamp(0.0, 1.0);
+                          adjustedScale = baseScale + (1.0 - baseScale - 0.05) * progress;
+                        }
+
+                        Widget card = Stack(
+                          children: [
+                            Container(
+                              height: constraints.maxHeight * 0.8,
+                              width: constraints.maxWidth,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(48.0),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Colors.black12,
+                                    blurRadius: 18,
+                                    offset: Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Container(
+                              height: constraints.maxHeight * 0.8,
+                              width: constraints.maxWidth,
+                              decoration: BoxDecoration(
+                                gradient: RadialGradient(
+                                  colors: RandomGradientGenerator.getRandomColors(2) +
+                                      [
+                                        Colors.white.withValues(alpha: 0.1),
+                                        Colors.white.withValues(alpha: 0.4),
+                                        Colors.white.withValues(alpha: 0.4),
+                                      ],
+                                  center: Alignment.topRight,
+                                  radius: 2,
+                                  //focal: Alignment.topCenter,
+                                  //focalRadius: 0.2
+                                ),
+                                borderRadius: BorderRadius.circular(48.0),
+                              ),
+                            ),
+                            Container(
+                              height: constraints.maxHeight * 0.8,
+                              width: constraints.maxWidth,
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: Colors.grey.shade300,
+                                  width: 1.0,
+                                ),
+                                gradient: RadialGradient(
+                                    colors: RandomGradientGenerator.getRandomColors(3) +
+                                        [
+                                          Colors.white.withValues(alpha: 0.1),
+                                          Colors.white.withValues(alpha: 0.1),
+                                          Colors.white.withValues(alpha: 0.1),
+                                        ],
+                                  radius: 1.2,
+                                  center: Alignment.topLeft,
+                                ),
+                                borderRadius: BorderRadius.circular(48.0),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(24.0),
+                                child: Column(
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            flashcard.question,
+                                            style: const TextStyle(
+                                              fontSize: 24,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                          const SizedBox(height: 20),
+                                          Text(
+                                            flashcard.answer,
+                                            style: const TextStyle(fontSize: 14),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
                           ],
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(24.0),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                flashcard.question,
-                                style: const TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: 20),
-                              Text(
-                                flashcard.answer,
-                                style: const TextStyle(fontSize: 18),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: 40),
-                              Text(
-                                'Card ${index + 1} of ${_flashcards.length}',
-                                style: const TextStyle(fontSize: 14, color: Colors.grey),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
+                        );
 
-                      if (isTopCard) {
-                        return GestureDetector(
-                          onHorizontalDragUpdate: _onHorizontalDragUpdate,
-                          onHorizontalDragEnd: _onHorizontalDragEnd,
-                          child: AnimatedBuilder(
-                            animation: _swipeController,
-                            builder: (context, child) {
-                              final slideAmount = _swipeController.value *
-                                  (_dragOffset.sign * constraints.maxWidth);
-                              return Transform.translate(
-                                offset: Offset(_dragOffset + slideAmount, 0),
-                                child: Opacity(
-                                  opacity: _opacity,
-                                  child: child,
-                                ),
-                              );
-                            },
-                            child: card,
-                          ),
-                        );
-                      } else {
-                        return Transform.translate(
-                          offset: Offset(0, -topOffset + (i * 12.0)),
-                          child: Transform.scale(
-                            scale: adjustedScale,
-                            child: card,
-                          ),
-                        );
-                      }
-                    }).reversed.toList(),
-                  ),
-                ],
-              );
-            },
+                        if (isTopCard) {
+                          return GestureDetector(
+                            onHorizontalDragUpdate: _onHorizontalDragUpdate,
+                            onHorizontalDragEnd: _onHorizontalDragEnd,
+                            child: AnimatedBuilder(
+                              animation: _swipeController,
+                              builder: (context, child) {
+                                final slideAmount = _swipeController.value *
+                                    (_dragOffset.sign * constraints.maxWidth);
+                                return Transform.translate(
+                                  offset: Offset(_dragOffset + slideAmount, 0),
+                                  child: Opacity(
+                                    opacity: _opacity,
+                                    child: child,
+                                  ),
+                                );
+                              },
+                              child: card,
+                            ),
+                          );
+                        } else {
+                          return Transform.translate(
+                            offset: Offset(0, -topOffset + (i * 12.0)),
+                            child: Transform.scale(
+                              scale: adjustedScale,
+                              child: card,
+                            ),
+                          );
+                        }
+                      }).reversed.toList(),
+                    );
+                  },
+                ),
+              ),
+
+              // Card counter at bottom
+              const SizedBox(height: 16),
+              Text(
+                'Card ${currentIndex + 1} of ${_flashcards.length}',
+                style: const TextStyle(fontSize: 14, color: Colors.grey),
+              ),
+            ],
           ),
         ),
       ),
+    );
+  }
+  void _showDeleteAlertDialog(BuildContext context, Deck deck) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          title: const Text('Confirm Deletion', style: TextStyle(color: Colors.black)),
+          content: IntrinsicHeight(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8.0),
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8.0),
+                      color: Colors.redAccent.withValues(alpha: 0.1)
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.info_outline, color: Colors.redAccent),
+                      const SizedBox(width: 8.0),
+                      const Text('This action cannot be undone.',
+                          style: TextStyle(color: Colors.redAccent, fontSize: 12.0)
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12.0),
+                const Text(
+                    'Are you sure you want to delete this deck?',
+                    style: TextStyle(color: Colors.black54)
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.black,
+              ),
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.redAccent,
+              ),
+              child: const Text('Confirm'),
+              onPressed: () async {
+                await _deleteDeckUseCase(deck);
+                Navigator.of(context).pop();
+                context.go("/home");
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }

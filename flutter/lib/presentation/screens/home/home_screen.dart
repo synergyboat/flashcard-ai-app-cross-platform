@@ -3,7 +3,6 @@ import 'package:flashcard/core/utils/navigation_helper.dart';
 import 'package:flashcard/domain/entities/deck.dart';
 import 'package:flashcard/domain/use_case/deck/get_all_decks_use_case.dart';
 import 'package:flashcard/presentation/components/bars/flashcard_bottom_action_bar.dart';
-import 'package:flashcard/presentation/components/buttons/add_button.dart';
 import 'package:flashcard/presentation/components/buttons/ai_button.dart';
 import 'package:flashcard/presentation/components/containers/deck_collection_grid.dart';
 import 'package:flutter/foundation.dart';
@@ -61,17 +60,12 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       bottomNavigationBar: FlashcardBottomActionBar(
-          leading: AIButton(
+        trailing:AIButton(
             onPressed: () {
               _logger.i("AI button pressed");
-             context.push("/ai_generate_deck");
+              context.push("/ai_generate_deck");
             }
-          ),
-        trailing: AddButton(
-          onPressed: () {
-            _logger.i("AI button pressed");
-            context.push("/ai_generate_deck");
-          })
+        ),
       ),
       appBar: FlashcardAppBar(),
       body: SafeArea(
@@ -82,8 +76,9 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Center(
                 child: Text(
-                  "No decks found. Create a new deck to get started.",
-                  style: TextStyle(fontSize: 16, color: Colors.black54),
+                  "No decks found. \nCreate a new deck to get started.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 14, color: Colors.black54),
                 ),
               ),
               Align(
@@ -91,9 +86,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: IntrinsicHeight(
                   child: Row(
                     children: [
-                      Expanded(
+                      Expanded(child: const SizedBox(width: 16)),
+                      IntrinsicWidth(
                         child: Align(
-                          alignment: Alignment.centerLeft,
+                          alignment: Alignment.centerRight,
                           child: Column(
                             children: [
                               Text(
@@ -104,7 +100,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               Transform(
                                   alignment: Alignment.center,
                                   transform: Matrix4.identity()
-                                    ..rotateZ(pi / 2.5),
+                                    ..scale(-1.0, 1.0)
+                                    ..rotateZ(pi / 2.9),
                                   child: Column(
                                     children: [
                                       Opacity(
@@ -116,34 +113,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ),
                                       ),
                                     ],
-                                  )
-                              )
-                            ],
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Align(
-                          alignment: Alignment.centerRight,
-                          child: Column(
-                            children: [
-                              Text(
-                                "Create deck manually",
-                                style: TextStyle(fontSize: 14, color: Colors.black38),
-                              ),
-                              const SizedBox(height: 16),
-                              Transform(
-                                  alignment: Alignment.center,
-                                  transform: Matrix4.identity()
-                                    ..scale(-1.0, 1.0)
-                                    ..rotateZ(pi / 2.5),
-                                  child: Opacity(
-                                    opacity: 0.25,
-                                    child: SvgPicture.asset(
-                                      'assets/svg/curved-arrow.svg',
-                                      height: 80,
-                                      semanticsLabel: 'Squiggly Arrow',
-                                    ),
                                   )
                               )
                             ],
