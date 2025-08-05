@@ -32,7 +32,7 @@ class FlashcardAppBar extends StatelessWidget implements PreferredSizeWidget {
           child: Stack(
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 48.0),
+                padding: const EdgeInsets.symmetric(horizontal: 56.0),
                 child: Center(
                     child: Text(
                       titleText,
@@ -44,23 +44,26 @@ class FlashcardAppBar extends StatelessWidget implements PreferredSizeWidget {
                     )
                 ),
               ),
-              SizedBox(
-                height: height,
-                child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      (leadingWidget == null)? (context.canPop())?
-                        IconButton(
-                          icon: const Icon(Icons.arrow_back, color: Colors.black87),
-                          onPressed: () {
-                            context.pop();
-                          },
-                        )
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: SizedBox(
+                  height: height,
+                  child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        (leadingWidget == null)? (context.canPop())?
+                          IconButton(
+                            icon: const Icon(Icons.arrow_back, color: Colors.black87),
+                            onPressed: () {
+                              context.pop();
+                            },
+                          )
+                            : const SizedBox(width: 16.0, height: 16.0,)
+                      : leadingWidget!,
+                      actions != null? actions!
                           : const SizedBox(width: 16.0, height: 16.0,)
-                    : leadingWidget!,
-                    actions != null? actions!
-                        : const SizedBox(width: 16.0, height: 16.0,)
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ],

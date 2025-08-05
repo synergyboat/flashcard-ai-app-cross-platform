@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:logger/logger.dart';
 import '../../../core/config/di/config_di.dart';
+import '../../../domain/use_case/deck/delete_deck_use_case.dart';
 import '../../components/bars/flashcard_app_bar.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -22,8 +23,30 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final GetAllDecksUseCase _getAllDecksUseCase = getIt<GetAllDecksUseCase>();
+  final DeleteDeckUseCase _deleteDeckUseCase = getIt<DeleteDeckUseCase>();
   final Logger _logger = getIt<Logger>();
+  bool showText = false;
   List<Deck> decks = [];
+
+  void _toggleShowText(){
+    setState(() {
+      showText = true;
+    });
+    Future.delayed(const Duration(seconds: 5), () {
+      if (showText) {
+        setState(() {
+          showText = false;
+        });
+      }
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _toggleShowText();
+  }
+
 
   void _refresh(){
     if (kDebugMode){
@@ -32,6 +55,8 @@ class _HomeScreenState extends State<HomeScreen> {
     _getAllDecksUseCase().then((value) {
       setState(() {
         decks = value;
+        showText = decks.isEmpty;
+        _toggleShowText();
       });
     }).catchError((error) {
       _logger.e("Error fetching decks: $error");
@@ -60,7 +85,9 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       bottomNavigationBar: FlashcardBottomActionBar(
-        trailing:AIButton(
+        trailing:(decks.isEmpty)? null
+            :AIButton(
+          showText: showText,
             onPressed: () {
               _logger.i("AI button pressed");
               context.push("/ai_generate_deck");
@@ -72,65 +99,33 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
             child: (decks.isEmpty)?
-                Stack(
-            children: [
-              Center(
-                child: Text(
-                  "No decks found. \nCreate a new deck to get started.",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 14, color: Colors.black54),
-                ),
-              ),
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: IntrinsicHeight(
-                  child: Row(
+                Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Expanded(child: const SizedBox(width: 16)),
-                      IntrinsicWidth(
-                        child: Align(
-                          alignment: Alignment.centerRight,
-                          child: Column(
-                            children: [
-                              Text(
-                                "Generate using AI",
-                                style: TextStyle(fontSize: 14, color: Colors.black38),
-                              ),
-                              const SizedBox(height: 16),
-                              Transform(
-                                  alignment: Alignment.center,
-                                  transform: Matrix4.identity()
-                                    ..scale(-1.0, 1.0)
-                                    ..rotateZ(pi / 2.9),
-                                  child: Column(
-                                    children: [
-                                      Opacity(
-                                        opacity: 0.25,
-                                        child: SvgPicture.asset(
-                                          'assets/svg/curved-arrow.svg',
-                                          height: 80,
-                                          semanticsLabel: 'Squiggly Arrow',
-                                        ),
-                                      ),
-                                    ],
-                                  )
-                              )
-                            ],
-                          ),
-                        ),
+                      Text(
+                        "No decks found. \nCreate a new deck to get started.",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 14, color: Colors.black54),
                       ),
+                      const SizedBox(height: 24),
+                      AIButton(
+                          showText: true,
+                          onPressed: () {
+                            _logger.i("AI button pressed");
+                            context.push("/ai_generate_deck");
+                          }
+                      )
                     ],
                   ),
-                ),
-              )
-            ]
                 )
             :
             Stack(
               children: [
                 Align(
                   alignment: Alignment.center,
-                  child: DeckCollectionGrid(decks: decks, onDeckSelected: (Deck deck)=>{
+                  child: DeckCollectionGrid(decks: decks, deleteDeckUseCase: _deleteDeckUseCase, onDeckSelected: (Deck deck)=>{
                     context.pushNamed("deck", extra: deck)
                   }),
                 ),

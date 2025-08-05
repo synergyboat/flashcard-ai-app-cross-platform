@@ -15,6 +15,7 @@ import 'package:logger/logger.dart';
 import '../../../data/repository/ai/ai_generator_repository_impl.dart';
 import '../../../data/sources/openai/openai_ai_source.dart';
 import '../../../domain/repository/ai/ai_generator_repository.dart';
+import '../../../domain/use_case/flashcard/delete_flashcard_use_case.dart';
 
 part 'config_presentation_di.dart';
 part 'config_data_di.dart';
