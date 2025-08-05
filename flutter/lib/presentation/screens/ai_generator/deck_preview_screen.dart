@@ -103,7 +103,14 @@ class _DeckPreviewScreenState extends State<DeckPreviewScreen> with TickerProvid
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text("Flashcard added successfully!"),
+                        backgroundColor: Colors.green,
+                        content: Row(
+                          children: [
+                            Icon(Icons.check, color: Colors.white),
+                            SizedBox(width: 8),
+                            Text("Deck created."),
+                          ],
+                        ),
                         duration: Duration(seconds: 2),
                       )
                   );

@@ -41,7 +41,7 @@ class _AIGenerateDeckScreenState extends State<AIGenerateDeckScreen> {
                       children: [
                         const SizedBox(height: 8.0),
                         Center(
-                          child: Text("Enter a prompt to generate a deck of flashcards. The AI will create a deck based on your input.",
+                          child: Text("Provide a topic or concept below. The AI will generate a flashcard deck based on your input.",
                             textAlign: TextAlign.center,
                             style: TextStyle(fontSize: 12, color: Colors.black87,),
                           ),
@@ -68,7 +68,7 @@ class _AIGenerateDeckScreenState extends State<AIGenerateDeckScreen> {
                                               _promptText = value;
                                             });
                                           },
-                                          hint: "Enter your prompt here",
+                                          hint: "Enter a topic for the deck",
                                         ),
                                         const SizedBox(height: 16.0),
                                         Padding(
@@ -77,7 +77,7 @@ class _AIGenerateDeckScreenState extends State<AIGenerateDeckScreen> {
                                             crossAxisAlignment: CrossAxisAlignment.center,
                                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                             children: [
-                                              Text("Select maximum number of cards",
+                                              Text("Max number of cards",
                                                 style: TextStyle(fontSize: 12, color: Colors.black54),
                                               ),
                                               const SizedBox(width: 8.0),
@@ -135,7 +135,20 @@ class _AIGenerateDeckScreenState extends State<AIGenerateDeckScreen> {
                                           ScaffoldMessenger.of(context).showSnackBar(
                                             SnackBar(
                                               backgroundColor: Colors.redAccent,
-                                              content: Text("Please enter a prompt to generate the deck."),
+                                              content: Row(
+                                                children: [
+                                                  Icon(
+                                                    CupertinoIcons.exclamationmark_circle,
+                                                    color: Colors.white,
+                                                  ),
+                                                  const SizedBox(width: 8.0),
+                                                  Expanded(
+                                                    child: Text("Enter a topic to generate the deck.",
+                                                    textAlign: TextAlign.left,
+                                                    style: TextStyle(fontWeight: FontWeight.w500),),
+                                                  ),
+                                                ],
+                                              ),
                                               duration: Duration(seconds: 2),
                                             )
                                           );
@@ -153,13 +166,6 @@ class _AIGenerateDeckScreenState extends State<AIGenerateDeckScreen> {
                                         setState(() {
                                           _isGenerating = false;
                                         });
-                                        _logger.i("Deck generated with prompt: $_promptText");
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(
-                                              content: Text("Deck generated successfully!"),
-                                              duration: Duration(seconds: 2),
-                                            )
-                                        );
                                         if (mounted){
                                           context.pushNamed("deck_preview", extra: deck);
                                         }
@@ -190,7 +196,7 @@ class _AIGenerateDeckScreenState extends State<AIGenerateDeckScreen> {
                                     "The generated deck will contain a maximum of $_numberOfCards cards. "
                                     "Please note that language models may not always produce accurate or relevant results, so review the generated cards before using them.",
                                 style: TextStyle(fontSize: 10, color: Colors.black54),
-                                textAlign: TextAlign.start,
+                                textAlign: TextAlign.justify,
                               )
                           ),
                           const SizedBox(width: 8.0),
