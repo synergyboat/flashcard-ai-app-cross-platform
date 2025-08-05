@@ -5,13 +5,8 @@ import 'package:flashcard/presentation/screens/home/home_screen.dart';
 import 'package:go_router/go_router.dart';
 
 import '../screens/ai_generator/ai_generate_deck_screen.dart';
-import '../screens/splash/splash_screen.dart';
 
 final List<GoRoute> routes = [
-  GoRoute(
-      name: 'splash',
-      path: '/',
-      builder: (context, state) => const SplashScreen()),
   GoRoute(
     name: 'home',
     path: '/home',
