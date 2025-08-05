@@ -8,4 +8,4 @@ import jakarta.inject.Inject
 @HiltViewModel
 class SplashScreenViewModel @Inject constructor(
     val executionLogger: ExecutionLogger,
-): ViewModel()
+) : ViewModel()

@@ -7,7 +7,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class OpenAIService @Inject constructor (
+class OpenAIService @Inject constructor(
     private val openAI: OpenAI
 ) {
     fun getOpenAI(): OpenAI {

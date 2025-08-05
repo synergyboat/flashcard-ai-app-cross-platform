@@ -8,6 +8,7 @@ class CreateMultipleFlashcardsToDeckUseCase(
 ) {
     suspend operator fun invoke(flashcards: List<Flashcard>): List<Long> {
         return flashcards.map {
-            repository.createFlashcard(it) }
+            repository.createFlashcard(it)
+        }
     }
 }

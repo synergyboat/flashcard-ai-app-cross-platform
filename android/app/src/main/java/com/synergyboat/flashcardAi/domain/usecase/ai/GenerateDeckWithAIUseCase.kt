@@ -2,7 +2,6 @@ package com.synergyboat.flashcardAi.domain.usecase.ai
 
 import com.synergyboat.flashcardAi.domain.entities.Deck
 import com.synergyboat.flashcardAi.domain.repository.ai.AiGeneratorRepository
-import kotlinx.serialization.json.Json
 
 class GenerateDeckWithAIUseCase(
     private val repository: AiGeneratorRepository

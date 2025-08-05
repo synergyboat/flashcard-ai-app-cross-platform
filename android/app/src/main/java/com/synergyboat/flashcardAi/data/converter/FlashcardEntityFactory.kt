@@ -44,15 +44,28 @@ object FlashcardEntityFactory {
         val answer = jsonObject.optString("answer", "")
         val deckId = jsonObject.optLong("deckId")
         val createdAt: Date? = jsonObject.optString("createdAt").takeIf { it.isNotEmpty() }?.let {
-            LocalDateTime.parse(it).let { dateTime -> Date.from(dateTime.atZone(java.time.ZoneId.systemDefault()).toInstant()) }
+            LocalDateTime.parse(it).let { dateTime ->
+                Date.from(
+                    dateTime.atZone(java.time.ZoneId.systemDefault()).toInstant()
+                )
+            }
         }
         val updatedAt: Date? = jsonObject.optString("updatedAt").takeIf { it.isNotEmpty() }?.let {
-            LocalDateTime.parse(it).let { dateTime -> Date.from(dateTime.atZone(java.time.ZoneId.systemDefault()).toInstant()) }
+            LocalDateTime.parse(it).let { dateTime ->
+                Date.from(
+                    dateTime.atZone(java.time.ZoneId.systemDefault()).toInstant()
+                )
+            }
         }
 
-        val lastReviewed: Date? = jsonObject.optString("lastReviewed").takeIf { it.isNotEmpty() }?.let {
-            LocalDateTime.parse(it).let { dateTime -> Date.from(dateTime.atZone(java.time.ZoneId.systemDefault()).toInstant()) }
-        }
+        val lastReviewed: Date? =
+            jsonObject.optString("lastReviewed").takeIf { it.isNotEmpty() }?.let {
+                LocalDateTime.parse(it).let { dateTime ->
+                    Date.from(
+                        dateTime.atZone(java.time.ZoneId.systemDefault()).toInstant()
+                    )
+                }
+            }
 
         return Flashcard(
             id = id, // Placeholder, replace with parsed value

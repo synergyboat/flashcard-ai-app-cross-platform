@@ -1,6 +1,5 @@
 package com.synergyboat.flashcardAi.core.benchmark
 
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.nio.charset.Charset
 

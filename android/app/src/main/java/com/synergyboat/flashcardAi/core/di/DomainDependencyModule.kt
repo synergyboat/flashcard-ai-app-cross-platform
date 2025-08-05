@@ -68,7 +68,8 @@ object UseCaseDependencyModule {
     fun providesCreateMultipleFlashcardsToDeckUseCase(
         flashcardRepository: FlashcardRepository,
     ) = CreateMultipleFlashcardsToDeckUseCase(
-        repository = flashcardRepository)
+        repository = flashcardRepository
+    )
 
     @Provides
     @Singleton
@@ -107,5 +108,6 @@ object UseCaseDependencyModule {
     fun providesGenerateDeckWithAIUseCase(
         aiGeneratorRepository: AiGeneratorRepository,
     ) = GenerateDeckWithAIUseCase(
-        repository = aiGeneratorRepository)
+        repository = aiGeneratorRepository
+    )
 }

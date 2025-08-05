@@ -13,7 +13,6 @@ import com.synergyboat.flashcardAi.presentation.home.HomeScreen
 import com.synergyboat.flashcardAi.presentation.splashscreen.SplashScreen
 import kotlinx.serialization.json.Json
 import java.nio.charset.StandardCharsets
-import kotlin.collections.listOf
 
 @Composable
 fun AppRouter() {
@@ -42,7 +41,8 @@ fun AppRouter() {
             arguments = listOf(navArgument("deckJson") { type = NavType.StringType })
         ) { backStackEntry ->
             val deckJson = backStackEntry.arguments?.getString("deckJson") ?: ""
-            val decodedDeck = java.net.URLDecoder.decode(deckJson, StandardCharsets.UTF_8.toString())
+            val decodedDeck =
+                java.net.URLDecoder.decode(deckJson, StandardCharsets.UTF_8.toString())
             val deck = Json.decodeFromString<Deck>(decodedDeck)
 
             DeckDetailsScreen(
