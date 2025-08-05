@@ -11,6 +11,7 @@ import 'package:go_router/go_router.dart';
 import 'package:logger/logger.dart';
 import '../../../core/config/di/config_di.dart';
 import '../../../domain/use_case/deck/delete_deck_use_case.dart';
+import '../../../domain/use_case/deck/update_deck_use_case.dart';
 import '../../components/bars/flashcard_app_bar.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -24,6 +25,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final GetAllDecksUseCase _getAllDecksUseCase = getIt<GetAllDecksUseCase>();
   final DeleteDeckUseCase _deleteDeckUseCase = getIt<DeleteDeckUseCase>();
+  final UpdateDeckUseCase _updateDeckUseCase = getIt<UpdateDeckUseCase>();
   final Logger _logger = getIt<Logger>();
   bool showText = false;
   List<Deck> decks = [];
@@ -125,7 +127,12 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 Align(
                   alignment: Alignment.center,
-                  child: DeckCollectionGrid(decks: decks, deleteDeckUseCase: _deleteDeckUseCase, onDeckSelected: (Deck deck)=>{
+                  child: DeckCollectionGrid(
+                      decks: decks,
+                      deleteDeckUseCase: _deleteDeckUseCase,
+                      updateDeckUseCase: _updateDeckUseCase,
+                      refreshDecks: _refresh,
+                      onDeckSelected: (Deck deck)=>{
                     context.pushNamed("deck", extra: deck)
                   }),
                 ),

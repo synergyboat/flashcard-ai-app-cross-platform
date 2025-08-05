@@ -1,5 +1,5 @@
 [versions]
-agp = "8.12.0"
+agp = "8.11.1"
 dotenvKotlin = "6.5.1"
 hiltAndroid = "2.57"
 hiltAndroidCompiler = "2.57"

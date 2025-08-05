@@ -2,18 +2,23 @@ import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import '../../../domain/entities/deck.dart';
 import '../../../domain/use_case/deck/delete_deck_use_case.dart';
+import '../../../domain/use_case/deck/update_deck_use_case.dart';
 import '../cards/deck_card.dart';
 
 class DeckCollectionGrid extends StatefulWidget {
   final List<Deck> decks;
   final Function(Deck) onDeckSelected;
   final DeleteDeckUseCase deleteDeckUseCase;
+  final UpdateDeckUseCase updateDeckUseCase;
+  final VoidCallback? refreshDecks;
 
   const DeckCollectionGrid({
     super.key,
     required this.decks,
     required this.onDeckSelected,
     required this.deleteDeckUseCase,
+    required this.updateDeckUseCase,
+    this.refreshDecks,
   });
 
   @override
@@ -57,6 +62,8 @@ class _DeckCollectionGridState extends State<DeckCollectionGrid> {
                 deck: deck,
                 isShaking: isShaking,
                 deleteDeckUseCase: widget.deleteDeckUseCase,
+                updateDeckUseCase: widget.updateDeckUseCase,
+                refreshDecks: widget.refreshDecks,
                 onDeckSelected: (deck){
                   if (isShaking) {
                     stopShaking();
@@ -81,6 +88,7 @@ class _DeckCollectionGridState extends State<DeckCollectionGrid> {
                       colors: [
                         const Color(0xfffdf7fe).withValues(alpha: 1),
                         const Color(0xfffdf7fe).withValues(alpha: 0.5),
+                        const Color(0xfffdf7fe).withValues(alpha: 0.0),
                         const Color(0xfffdf7fe).withValues(alpha: 0.0),
                         const Color(0xfffdf7fe).withValues(alpha: 0.0),
                         const Color(0xfffdf7fe).withValues(alpha: 0.0),

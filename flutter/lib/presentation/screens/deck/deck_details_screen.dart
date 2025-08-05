@@ -1,5 +1,6 @@
 import 'package:flashcard/core/utils/random_gradient_generator.dart';
 import 'package:flashcard/domain/use_case/flashcard/delete_flashcard_use_case.dart';
+import 'package:flashcard/domain/use_case/flashcard/update_flashcard_use_case.dart';
 import 'package:flashcard/presentation/components/bars/empty_bottom_action_bar.dart';
 import 'package:flashcard/presentation/components/bars/flashcard_app_bar.dart';
 import 'package:flashcard/presentation/components/buttons/gradient_button.dart';
@@ -22,8 +23,9 @@ class DeckDetailsScreen extends StatefulWidget {
 }
 
 class _DeckDetailsScreenState extends State<DeckDetailsScreen> with TickerProviderStateMixin {
-  late final Deck deck = widget.deck;
+  late Deck deck;
   final DeleteFlashcardUseCase _deleteFlashcardUseCase = getIt<DeleteFlashcardUseCase>();
+  final UpdateFlashcardUseCase _updateFlashcardUseCase = getIt<UpdateFlashcardUseCase>();
   final Logger _logger = getIt<Logger>();
   late final List<Flashcard> _flashcards = deck.flashcards;
   String _questionEditValue = "";
@@ -38,6 +40,7 @@ class _DeckDetailsScreenState extends State<DeckDetailsScreen> with TickerProvid
   @override
   void initState() {
     super.initState();
+    deck = widget.deck;
     // _flashcards = deck.flashcards;
     _logger.i("The deck is: ${deck.toString()}");
     _swipeController = AnimationController(
@@ -419,24 +422,20 @@ class _DeckDetailsScreenState extends State<DeckDetailsScreen> with TickerProvid
                       const SizedBox(height: 32),
                       GradientButton(
                         text: "Save changes",
-                        onPressed: () {
-                          //_showDeleteAlertDialog(context, flashcard);
+                        onPressed: () async {
+                          await _updateFlashcardUseCase(flashcard);
+                          setState(() {
+                            flashcard = flashcard.copyWith(answer: _answerEditValue, question: _questionEditValue);
+                            _flashcards[currentIndex] = flashcard;
+                            deck = deck.copyWith(flashcards: _flashcards);
+                          });
+                          if (mounted) {
+                            Navigator.of(context).pop();
+                          }
                         },
                         shadowColor: Colors.blueAccent.withValues(alpha: 0.8),
                         icon: const Icon(Icons.check, color: Colors.white, size: 20.0),
                       ),
-                      // Row(
-                      //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      //   children: [
-                      //     TextButton(
-                      //       style: TextButton.styleFrom(foregroundColor: Colors.black),
-                      //       child: const Text('Close', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400)),
-                      //       onPressed: () {
-                      //         Navigator.of(context).pop();
-                      //       },
-                      //     ),
-                      //   ],
-                      // ),
                       const SizedBox(height: 32),
                     ],
                   ),

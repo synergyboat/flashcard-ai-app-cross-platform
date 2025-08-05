@@ -1,3 +1,6 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -6,6 +9,10 @@ plugins {
     id("com.google.dagger.hilt.android")
     id("com.google.devtools.ksp")
 }
+
+val envPropsFile = rootProject.file(".env")
+val envProps = Properties()
+envProps.load(FileInputStream(envPropsFile))
 
 android {
     namespace = "com.synergyboat.flashcardAi"
@@ -18,7 +25,7 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        buildConfigField("String", "API_KEY", "\"YOUR_API\"")
+        buildConfigField("String", "OPEN_AI_KEY", "\"${envProps["OPEN_AI_KEY"]}\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

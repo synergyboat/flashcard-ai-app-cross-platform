@@ -1,9 +1,10 @@
 import 'package:flashcard/domain/use_case/deck/delete_deck_use_case.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'dart:math';
-import '../../../core/config/di/config_di.dart';
 import '../../../domain/entities/deck.dart';
+import '../../../domain/use_case/deck/update_deck_use_case.dart';
+import '../buttons/gradient_button.dart';
+import '../inputs/text_input_field.dart';
 
 class DeckCard extends StatefulWidget {
   final Deck deck;
@@ -11,6 +12,8 @@ class DeckCard extends StatefulWidget {
   final VoidCallback onLongPress;
   final bool isShaking;
   final DeleteDeckUseCase deleteDeckUseCase;
+  final UpdateDeckUseCase updateDeckUseCase;
+  final VoidCallback? refreshDecks;
 
   const DeckCard({
     super.key,
@@ -19,6 +22,8 @@ class DeckCard extends StatefulWidget {
     required this.onLongPress,
     required this.isShaking,
     required this.deleteDeckUseCase,
+    required this.updateDeckUseCase,
+    this.refreshDecks,
   });
 
   @override
@@ -28,6 +33,8 @@ class DeckCard extends StatefulWidget {
 class _DeckCardState extends State<DeckCard> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _rotationAnimation;
+  String? nameEditValue = "";
+  String? descriptionEditValue = "";
 
   @override
   void initState() {
@@ -79,33 +86,39 @@ class _DeckCardState extends State<DeckCard> with SingleTickerProviderStateMixin
                     Stack(
                       children: [
                         Align(
-                          alignment: Alignment.topRight,
-                          child: IconButton(
-                              onPressed: (){},
-                              icon: Icon(CupertinoIcons.pencil_circle_fill),
-                              color: Colors.black.withValues(alpha: 1),
-                              iconSize: 42,
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints.tightFor(
-                                  width: 42,
-                                  height: 42),
-                              tooltip: "Delete Deck"),
+                          alignment: Alignment.topRight.add(
+                              Alignment(0.3, -0.15)),
+                          child: Container(
+                            padding: EdgeInsets.all(0),
+                            decoration: BoxDecoration(
+                              gradient: RadialGradient(colors: [
+                                Colors.white,
+                                Colors.white.withAlpha(0)
+                              ]),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.1),
+                                  blurRadius: 8,
+                                  spreadRadius: 0.4,
+                                  offset: Offset(-2, 2),
+                                ),
+                              ],
+                              shape: BoxShape.circle,
+                            ),
+                            child: IconButton(
+                                onPressed: (){
+                                  _showEditDeckDialog(context, widget.deck);
+                                },
+                                icon: Icon(CupertinoIcons.pencil_circle_fill),
+                                color: Colors.black.withValues(alpha: 0.7),
+                                iconSize: 42,
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints.tightFor(
+                                    width: 42,
+                                    height: 42),
+                                tooltip: "Edit Deck"),
+                          ),
                         ),
-                        Align(
-                          alignment: Alignment.topLeft,
-                          child: IconButton(
-                              onPressed: (){
-                                _showDeleteAlertDialog(context, widget.deck);
-                              },
-                              icon: Icon(CupertinoIcons.xmark_circle_fill),
-                              color: Colors.redAccent.withValues(alpha: 1),
-                              iconSize: 42,
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints.tightFor(
-                                  width: 42,
-                                  height: 42),
-                              tooltip: "Delete Deck"),
-                        )
                       ],
                     )
                 ],
@@ -230,16 +243,157 @@ class _DeckCardState extends State<DeckCard> with SingleTickerProviderStateMixin
               child: const Text('Confirm'),
               onPressed: () async {
                 await widget.deleteDeckUseCase(deck);
-                if (mounted) {
-                  setState(() async {
-                    if (mounted){
-                      Navigator.of(context).pop();
-                    }
-                  });
+                widget.refreshDecks?.call();
+                if (mounted){
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pop();
                 }
               },
             ),
           ],
+        );
+      },
+    );
+  }
+
+  void _showEditDeckDialog(BuildContext context, Deck deck) {
+    setState(() {
+      nameEditValue = deck.name;
+      descriptionEditValue = deck.description;
+    });
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      isDismissible: true,
+      enableDrag: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24.0)),
+      ),
+      builder: (context) {
+        final halfScreenHeight = MediaQuery.of(context).size.height * 0.5;
+
+        return SizedBox(
+          height: halfScreenHeight,
+          child: Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom + 32,
+              left: 20,
+              right: 20,
+              top: 20,
+            ),
+            child: Stack(
+              children: [
+                Center(
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade300,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Align(
+                              alignment: Alignment.center,
+                              child: const Text(
+                                'Edit Deck',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: TextButton(
+                                style: TextButton.styleFrom(
+                                  foregroundColor: Colors.redAccent,
+                                ),
+                                onPressed: () async {
+                                  _showDeleteAlertDialog(context, deck);
+                                },
+                                child: Text("Delete",
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.redAccent,
+                                      fontWeight: FontWeight.w400,
+                                    )
+                                ),
+                              ),
+                            )
+                          ]
+                      ),
+                      const SizedBox(height: 20),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Question',
+                          textAlign: TextAlign.start,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.normal,
+                          ),
+                        ),
+                      ),
+                      TextInputField(
+                        hint: "Name",
+                        value: nameEditValue??"",
+                        onValueChanged: (value) {
+                          setState(() {
+                            nameEditValue = value;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Answer',
+                          textAlign: TextAlign.start,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.normal,
+                          ),
+                        ),
+                      ),
+                      TextInputField(
+                        hint: "Description",
+                        value: descriptionEditValue??"",
+                        onValueChanged: (value) {
+                          setState(() {
+                            descriptionEditValue = value;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 32),
+                      GradientButton(
+                        text: "Save changes",
+                        onPressed: () async {
+                          setState(() {
+                            deck = deck.copyWith(name: nameEditValue, description: descriptionEditValue);
+                          });
+                          await widget.updateDeckUseCase(deck);
+                          if (mounted) {
+                            Navigator.of(context).pop();
+                          }
+                        },
+                        shadowColor: Colors.blueAccent.withValues(alpha: 0.8),
+                        icon: const Icon(Icons.check, color: Colors.white, size: 20.0),
+                      ),
+                      const SizedBox(height: 32),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         );
       },
     );
