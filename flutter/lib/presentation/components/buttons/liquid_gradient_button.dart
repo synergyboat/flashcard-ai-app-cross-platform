@@ -5,6 +5,9 @@ class LiquidGradientButton extends StatelessWidget {
   final Widget child;
   final List<Color> colors;
   final String? tooltip;
+  final Color shadowColor;
+  final Color rippleColor;
+  final Color highlightColor;
 
   const LiquidGradientButton({
     super.key,
@@ -12,20 +15,22 @@ class LiquidGradientButton extends StatelessWidget {
     required this.child,
     this.colors = const [
       Color(0xff0c7fff),
-      Color(0xffcbfcff),
+      Color(0xff2e68f6),
     ],
     this.tooltip,
+    this.shadowColor = Colors.blueAccent,
+    this.rippleColor = Colors.blueAccent,
+    this.highlightColor = Colors.cyan
   });
 
   @override
-  @override
   Widget build(BuildContext context) {
     return Tooltip(
-      message: tooltip??'', // Change this to your desired tooltip text
-      preferBelow: false, // Optional: change tooltip position
+      message: tooltip ?? '',
+      preferBelow: false,
       child: InkWell(
-        splashColor: Colors.blueAccent,
-        highlightColor: Colors.cyan,
+        splashColor: rippleColor,
+        highlightColor: highlightColor,
         onTap: onPressed,
         borderRadius: BorderRadius.circular(100),
         child: Ink(
@@ -40,7 +45,7 @@ class LiquidGradientButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(100),
             boxShadow: [
               BoxShadow(
-                color: Colors.blueAccent.withOpacity(0.6), // fix for withValues issue
+                color: shadowColor.withValues(alpha: 0.6),
                 offset: const Offset(0, 5),
                 spreadRadius: 3,
                 blurRadius: 18,
@@ -52,7 +57,7 @@ class LiquidGradientButton extends StatelessWidget {
               color: Colors.transparent,
               borderRadius: BorderRadius.circular(100.0),
               border: Border.all(
-                color: Colors.blueAccent.withOpacity(0), // fix for withValues issue
+                color: Colors.blueAccent.withValues(alpha: 0),
                 width: 0.5,
               ),
             ),

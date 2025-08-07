@@ -56,7 +56,11 @@ fun HomeScreen(
         content = { padding ->
             Box(modifier = Modifier.padding(padding)) {
                 if (decks.isEmpty()) {
-                    HomeEmptyState()
+                    HomeEmptyState(
+                        onGenerateClicked = {
+                            navController.navigate("ai_generate_deck")
+                        }
+                    )
                 } else {
                     DeckCollectionGrid(
                         navController = navController,

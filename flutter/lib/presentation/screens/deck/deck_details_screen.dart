@@ -1,10 +1,10 @@
 import 'package:flashcard/core/utils/random_gradient_generator.dart';
-import 'package:flashcard/domain/use_case/deck/create_new_deck_use_case.dart';
-import 'package:flashcard/domain/use_case/deck/delete_deck_use_case.dart';
-import 'package:flashcard/domain/use_case/deck/get_flashcards_from_deck_use_case.dart';
+import 'package:flashcard/domain/use_case/flashcard/delete_flashcard_use_case.dart';
+import 'package:flashcard/domain/use_case/flashcard/update_flashcard_use_case.dart';
 import 'package:flashcard/presentation/components/bars/empty_bottom_action_bar.dart';
 import 'package:flashcard/presentation/components/bars/flashcard_app_bar.dart';
 import 'package:flashcard/presentation/components/buttons/gradient_button.dart';
+import 'package:flashcard/presentation/components/inputs/text_input_field.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:logger/logger.dart';
@@ -23,10 +23,13 @@ class DeckDetailsScreen extends StatefulWidget {
 }
 
 class _DeckDetailsScreenState extends State<DeckDetailsScreen> with TickerProviderStateMixin {
-  late final Deck deck = widget.deck;
-  final DeleteDeckUseCase _deleteDeckUseCase = getIt<DeleteDeckUseCase>();
+  late Deck deck;
+  final DeleteFlashcardUseCase _deleteFlashcardUseCase = getIt<DeleteFlashcardUseCase>();
+  final UpdateFlashcardUseCase _updateFlashcardUseCase = getIt<UpdateFlashcardUseCase>();
   final Logger _logger = getIt<Logger>();
   late final List<Flashcard> _flashcards = deck.flashcards;
+  String _questionEditValue = "";
+  String _answerEditValue = "";
 
   int currentIndex = 0;
 
@@ -37,6 +40,7 @@ class _DeckDetailsScreenState extends State<DeckDetailsScreen> with TickerProvid
   @override
   void initState() {
     super.initState();
+    deck = widget.deck;
     // _flashcards = deck.flashcards;
     _logger.i("The deck is: ${deck.toString()}");
     _swipeController = AnimationController(
@@ -96,11 +100,20 @@ class _DeckDetailsScreenState extends State<DeckDetailsScreen> with TickerProvid
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: FlashcardAppBar(title: deck.name,
-      actions: IconButton(
-        highlightColor: Colors.redAccent.withValues(alpha: 0.1),
-          onPressed: (){_showDeleteAlertDialog(context, deck);},
-          icon: const Icon(Icons.delete, color: Colors.redAccent, size: 24.0)
-      ),),
+        actions: TextButton(onPressed: () {
+          _showFlashcardDialog(context, _flashcards[currentIndex]);
+        },
+          style: TextButton.styleFrom(
+            foregroundColor: Colors.blueAccent,
+            textStyle: const TextStyle(fontSize: 16),
+          ), child: Text("Edit"),
+        ),
+        // actions: IconButton(
+        //   highlightColor: Colors.redAccent.withValues(alpha: 0.1),
+        //     onPressed: (){_showDeleteAlertDialog(context, deck);},
+        //     icon: const Icon(Icons.delete, color: Colors.redAccent, size: 24.0)
+        // ),
+      ),
       bottomNavigationBar: EmptyBottomActionBar(
         child: GradientButton(
           text: "Close",
@@ -114,14 +127,13 @@ class _DeckDetailsScreenState extends State<DeckDetailsScreen> with TickerProvid
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               // Description at top
-              if (deck.description != null && deck.description!.isNotEmpty)
-                Text(
-                  deck.description!,
-                  style: const TextStyle(fontSize: 14, color: Colors.grey),
-                  textAlign: TextAlign.center,
-                ),
-              const SizedBox(height: 16),
-
+              Text(
+                (deck.description != null && deck.description!.isNotEmpty)
+                    ? deck.description!
+                    : "No description available",
+                style: const TextStyle(fontSize: 16, color: Colors.grey),
+                textAlign: TextAlign.center,
+              ),
               // Card stack - use Expanded to take remaining space
               Expanded(
                 child: LayoutBuilder(
@@ -130,7 +142,9 @@ class _DeckDetailsScreenState extends State<DeckDetailsScreen> with TickerProvid
                       alignment: Alignment.center,
                       children: List.generate(3, (i) {
                         int index = currentIndex + i;
-                        if (index >= _flashcards.length) return const SizedBox.shrink();
+                        if (index >= _flashcards.length) {
+                          return const SizedBox.shrink();
+                        }
 
                         final flashcard = _flashcards[index];
                         bool isTopCard = i == 0;
@@ -141,8 +155,10 @@ class _DeckDetailsScreenState extends State<DeckDetailsScreen> with TickerProvid
                         double adjustedScale = baseScale;
 
                         if (isSecondCard) {
-                          double progress = (_dragOffset.abs() / 150).clamp(0.0, 1.0);
-                          adjustedScale = baseScale + (1.0 - baseScale - 0.05) * progress;
+                          double progress = (_dragOffset.abs() / 150).clamp(
+                              0.0, 1.0);
+                          adjustedScale =
+                              baseScale + (1.0 - baseScale - 0.05) * progress;
                         }
 
                         Widget card = Stack(
@@ -167,7 +183,8 @@ class _DeckDetailsScreenState extends State<DeckDetailsScreen> with TickerProvid
                               width: constraints.maxWidth,
                               decoration: BoxDecoration(
                                 gradient: RadialGradient(
-                                  colors: RandomGradientGenerator.getRandomColors(2) +
+                                  colors: RandomGradientGenerator
+                                      .getRandomColors(2) +
                                       [
                                         Colors.white.withValues(alpha: 0.1),
                                         Colors.white.withValues(alpha: 0.4),
@@ -190,12 +207,13 @@ class _DeckDetailsScreenState extends State<DeckDetailsScreen> with TickerProvid
                                   width: 1.0,
                                 ),
                                 gradient: RadialGradient(
-                                    colors: RandomGradientGenerator.getRandomColors(3) +
-                                        [
-                                          Colors.white.withValues(alpha: 0.1),
-                                          Colors.white.withValues(alpha: 0.1),
-                                          Colors.white.withValues(alpha: 0.1),
-                                        ],
+                                  colors: RandomGradientGenerator
+                                      .getRandomColors(3) +
+                                      [
+                                        Colors.white.withValues(alpha: 0.1),
+                                        Colors.white.withValues(alpha: 0.1),
+                                        Colors.white.withValues(alpha: 0.1),
+                                      ],
                                   radius: 1.2,
                                   center: Alignment.topLeft,
                                 ),
@@ -207,8 +225,10 @@ class _DeckDetailsScreenState extends State<DeckDetailsScreen> with TickerProvid
                                   children: [
                                     Expanded(
                                       child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        mainAxisAlignment: MainAxisAlignment
+                                            .spaceBetween,
+                                        crossAxisAlignment: CrossAxisAlignment
+                                            .center,
                                         children: [
                                           Text(
                                             flashcard.question,
@@ -221,7 +241,8 @@ class _DeckDetailsScreenState extends State<DeckDetailsScreen> with TickerProvid
                                           const SizedBox(height: 20),
                                           Text(
                                             flashcard.answer,
-                                            style: const TextStyle(fontSize: 14),
+                                            style: const TextStyle(
+                                                fontSize: 14),
                                             textAlign: TextAlign.center,
                                           ),
                                         ],
@@ -281,7 +302,156 @@ class _DeckDetailsScreenState extends State<DeckDetailsScreen> with TickerProvid
       ),
     );
   }
-  void _showDeleteAlertDialog(BuildContext context, Deck deck) {
+
+  void _showFlashcardDialog(BuildContext context, Flashcard flashcard) {
+    setState(() {
+      _questionEditValue = flashcard.question;
+      _answerEditValue = flashcard.answer;
+    });
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      isDismissible: true,
+      enableDrag: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24.0)),
+      ),
+      builder: (context) {
+        final halfScreenHeight = MediaQuery.of(context).size.height * 0.5;
+
+        return SizedBox(
+          height: halfScreenHeight,
+          child: Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom + 32,
+              left: 20,
+              right: 20,
+              top: 20,
+            ),
+            child: Stack(
+              children: [
+                Center(
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade300,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Align(
+                              alignment: Alignment.center,
+                              child: const Text(
+                                'Edit Flashcard',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: TextButton(
+                                style: TextButton.styleFrom(
+                                  foregroundColor: Colors.redAccent,
+                                ),
+                                onPressed: () async {
+                                  _showDeleteAlertDialog(context, flashcard);
+                                },
+                                child: Text("Delete",
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.redAccent,
+                                      fontWeight: FontWeight.w400,
+                                    )
+                                ),
+                              ),
+                            )
+                          ]
+                      ),
+                      const SizedBox(height: 20),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Question',
+                          textAlign: TextAlign.start,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.normal,
+                          ),
+                        ),
+                      ),
+                      TextInputField(
+                        hint: "Question",
+                        value: _questionEditValue,
+                        onValueChanged: (value) {
+                          setState(() {
+                            _questionEditValue = value;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Answer',
+                          textAlign: TextAlign.start,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.normal,
+                          ),
+                        ),
+                      ),
+                      TextInputField(
+                        hint: "Answer",
+                        value: _answerEditValue,
+                        onValueChanged: (value) {
+                          setState(() {
+                            _answerEditValue = value;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 32),
+                      GradientButton(
+                        text: "Save changes",
+                        onPressed: () async {
+                          final navigator = Navigator.of(context);
+                          flashcard = flashcard.copyWith(answer: _answerEditValue, question: _questionEditValue);
+                          await _updateFlashcardUseCase(flashcard);
+                          setState(() {
+                            _flashcards[currentIndex] = flashcard;
+                            deck = deck.copyWith(flashcards: _flashcards);
+                          });
+                          if (!mounted) {
+                            return;
+                          }
+                          navigator.pop();
+
+                        },
+                        shadowColor: Colors.blueAccent.withValues(alpha: 0.8),
+                        icon: const Icon(Icons.check, color: Colors.white, size: 20.0),
+                      ),
+                      const SizedBox(height: 32),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showDeleteAlertDialog(BuildContext context, Flashcard flashcard) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -310,7 +480,7 @@ class _DeckDetailsScreenState extends State<DeckDetailsScreen> with TickerProvid
                 ),
                 const SizedBox(height: 12.0),
                 const Text(
-                    'Are you sure you want to delete this deck?',
+                    'Are you sure you want to delete this flashcard?',
                     style: TextStyle(color: Colors.black54)
                 ),
               ],
@@ -332,9 +502,14 @@ class _DeckDetailsScreenState extends State<DeckDetailsScreen> with TickerProvid
               ),
               child: const Text('Confirm'),
               onPressed: () async {
-                await _deleteDeckUseCase(deck);
-                Navigator.of(context).pop();
-                context.go("/home");
+                final navigator = Navigator.of(context);
+                await _deleteFlashcardUseCase(flashcard);
+                setState(() {
+                  _flashcards.removeAt(currentIndex);
+                  navigator.pop();
+                  navigator.pop();
+
+                });
               },
             ),
           ],

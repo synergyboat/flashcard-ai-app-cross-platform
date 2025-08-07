@@ -53,9 +53,7 @@ abstract class DeckDao {
 
     for (final deck in decks) {
       final flashcards = await getFlashcardsByDeckId(deck.id!);
-      if (flashcards.isNotEmpty) {
-        decksWithFlashcards.add(DeckWithFlashcardsDbEntity(deck, flashcards));
-      }
+      decksWithFlashcards.add(DeckWithFlashcardsDbEntity(deck, flashcards));
     }
     return decksWithFlashcards;
   }

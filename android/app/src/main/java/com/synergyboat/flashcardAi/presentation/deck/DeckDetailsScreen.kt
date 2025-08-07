@@ -57,12 +57,20 @@ fun DeckDetailsScreen(
     navController: NavController,
     deck: Deck,
 ) {
-    val flashcards = remember(deck) { deck.flashcards.toList() }
-    val swipeOffset = remember { Animatable(0f) }
-    val coroutineScope = rememberCoroutineScope()
-    var currentIndex by remember { mutableIntStateOf(0) }
-    var opacity by remember { mutableFloatStateOf(1f) }
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+
+    var currentIndex by remember { mutableIntStateOf(0) }
+    val swipeOffset = remember { Animatable(0f) }
+    var opacity by remember { mutableFloatStateOf(1f) }
+
+    val flashcards = remember(deck) { deck.flashcards }
+    val visibleFlashcards = remember(currentIndex, flashcards) {
+        flashcards.subList(
+            currentIndex,
+            (currentIndex + 3).coerceAtMost(flashcards.size)
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -79,7 +87,7 @@ fun DeckDetailsScreen(
         bottomBar = {
             BottomAppBar {
                 Button(
-                    onClick = { navController.popBackStack() },
+                    onClick = { navController.navigateUp() },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp)
@@ -87,113 +95,105 @@ fun DeckDetailsScreen(
                     Text("Close")
                 }
             }
-        },
-        content = { padding ->
-            Column(
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .padding(padding)
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            if (!deck.description.isNullOrEmpty()) {
+                Text(
+                    text = deck.description!!,
+                    style = MaterialTheme.typography.bodySmall,
+                    textAlign = TextAlign.Center,
+                    color = Color.Gray
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            Box(
                 modifier = Modifier
-                    .padding(padding)
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .weight(1f)
+                    .fillMaxWidth(),
+                contentAlignment = Alignment.Center
             ) {
-                if (!deck.description.isNullOrEmpty()) {
-                    Text(
-                        text = deck.description,
-                        style = MaterialTheme.typography.bodySmall,
-                        textAlign = TextAlign.Center,
-                        color = Color.Gray
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
+                visibleFlashcards.reversed().forEachIndexed { i, flashcard ->
+                    val isTop = i == 0
+                    val offsetY = (i * 12).dp
+                    val scale = 1f - (i * 0.05f)
+                    val z = 3 - i
 
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    (0..2).mapNotNull { offset ->
-                        val index = currentIndex + offset
-                        if (index < flashcards.size) index else null
-                    }.reversed().forEachIndexed { i, actualIndex ->
-                        val flashcard = flashcards[actualIndex]
-                        val offsetY = (i * 12).dp
-                        val scale = 1f - (i * 0.05f)
-                        val z = 3 - i
-                        val isTop = i == 0
-
-                        val cardModifier = Modifier
-                            .offset(y = -offsetY)
-                            .graphicsLayer {
-                                scaleX = scale
-                                scaleY = scale
-                                translationX = if (isTop) swipeOffset.value else 0f
-                                alpha = if (isTop) opacity else 1f
-                            }
-                            .zIndex(z.toFloat())
-
-                        Card(
-                            modifier = cardModifier
-                                .fillMaxWidth()
-                                .height(400.dp)
-                                .then(
-                                    if (isTop) Modifier.pointerInput(Unit) {
-                                        detectHorizontalDragGestures(
-                                            onDragEnd = {
-                                                coroutineScope.launch {
-                                                    val threshold = 100f
-                                                    val screenWidth =
-                                                        context.resources.displayMetrics.widthPixels.toFloat()
-                                                    val targetOffset = when {
-                                                        swipeOffset.value < -threshold && currentIndex < flashcards.lastIndex -> -screenWidth
-                                                        swipeOffset.value > threshold && currentIndex > 0 -> screenWidth
-                                                        else -> 0f
-                                                    }
-
-                                                    swipeOffset.animateTo(
-                                                        targetOffset,
-                                                        animationSpec = tween(
-                                                            durationMillis = 250,
-                                                            easing = FastOutSlowInEasing
-                                                        )
-                                                    )
-
-                                                    if (targetOffset < 0 && currentIndex < flashcards.lastIndex) {
-                                                        currentIndex++
-                                                    } else if (targetOffset > 0 && currentIndex > 0) {
-                                                        currentIndex--
-                                                    }
-
-                                                    swipeOffset.snapTo(0f)
-                                                    opacity = 1f
-                                                }
-                                            },
-                                            onHorizontalDrag = { _, dragAmount ->
-                                                coroutineScope.launch {
-                                                    val newOffset = swipeOffset.value + dragAmount
-                                                    swipeOffset.snapTo(newOffset)
-                                                    opacity =
-                                                        ((200f - newOffset.absoluteValue) / 200f)
-                                                            .coerceIn(0f, 1f)
-                                                }
-                                            }
-                                        )
-                                    } else Modifier
-                                ),
-                            shape = RoundedCornerShape(32.dp),
-                            elevation = CardDefaults.cardElevation(16.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFFF6F6F6))
-                        ) {
-                            FlashcardContent(flashcard)
+                    val modifier = Modifier
+                        .offset(y = -offsetY)
+                        .graphicsLayer {
+                            scaleX = scale
+                            scaleY = scale
+                            translationX = if (isTop) swipeOffset.value else 0f
+                            alpha = if (isTop) opacity else 1f
                         }
+                        .zIndex(z.toFloat())
+                        .fillMaxWidth()
+                        .height(400.dp)
+                        .then(
+                            if (isTop) Modifier.pointerInput(Unit) {
+                                detectHorizontalDragGestures(
+                                    onDragEnd = {
+                                        coroutineScope.launch {
+                                            val threshold = 100f
+                                            val screenWidth = context.resources.displayMetrics.widthPixels
+                                            val targetOffset = when {
+                                                swipeOffset.value < -threshold && currentIndex < flashcards.lastIndex -> -screenWidth.toFloat()
+                                                swipeOffset.value > threshold && currentIndex > 0 -> screenWidth.toFloat()
+                                                else -> 0f
+                                            }
+
+                                            swipeOffset.animateTo(
+                                                targetOffset,
+                                                animationSpec = tween(250, easing = FastOutSlowInEasing)
+                                            )
+
+                                            when {
+                                                targetOffset < 0 && currentIndex < flashcards.lastIndex -> currentIndex++
+                                                targetOffset > 0 && currentIndex > 0 -> currentIndex--
+                                            }
+
+                                            swipeOffset.snapTo(0f)
+                                            opacity = 1f
+                                        }
+                                    },
+                                    onHorizontalDrag = { _, dragAmount ->
+                                        coroutineScope.launch {
+                                            val newOffset = swipeOffset.value + dragAmount
+                                            swipeOffset.snapTo(newOffset)
+                                            opacity = ((200f - newOffset.absoluteValue) / 200f)
+                                                .coerceIn(0f, 1f)
+                                        }
+                                    }
+                                )
+                            } else Modifier
+                        )
+
+                    Card(
+                        modifier = modifier,
+                        shape = RoundedCornerShape(32.dp),
+                        elevation = CardDefaults.cardElevation(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF6F6F6))
+                    ) {
+                        FlashcardContent(flashcard)
                     }
                 }
-
-                Spacer(modifier = Modifier.height(16.dp))
-                Text("Card ${currentIndex + 1} of ${flashcards.size}", color = Color.Gray)
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "Card ${currentIndex + 1} of ${flashcards.size}",
+                color = Color.Gray
+            )
         }
-    )
+    }
 }
 
 @Composable

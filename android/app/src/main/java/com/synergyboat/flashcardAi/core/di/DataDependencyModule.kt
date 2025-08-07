@@ -44,7 +44,7 @@ object DataDependencyModule {
     @Provides
     @Singleton
     fun provideOpenAi(): OpenAI {
-        val token = BuildConfig.API_KEY.ifBlank {
+        val token = BuildConfig.OPEN_AI_KEY.ifBlank {
             throw IllegalStateException("API_KEY is missing in BuildConfig")
         }
         return OpenAI(

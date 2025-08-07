@@ -6,6 +6,9 @@ class GradientButton extends StatelessWidget {
   final double width;
   final double height;
   final Icon? icon;
+  final List<Color> colors;
+  final Color shadowColor;
+  final Color? rippleColor; // <-- New parameter
 
   const GradientButton({
     super.key,
@@ -14,6 +17,9 @@ class GradientButton extends StatelessWidget {
     this.width = 200.0,
     this.height = 50.0,
     this.icon,
+    this.colors = const [Colors.blue, Colors.blueAccent],
+    this.shadowColor = Colors.blueAccent,
+    this.rippleColor = Colors.blueAccent,
   });
 
   @override
@@ -24,31 +30,40 @@ class GradientButton extends StatelessWidget {
       decoration: BoxDecoration(
         boxShadow: [
           BoxShadow(
-            color: Colors.blueAccent.withValues(alpha: 0.4),
+            color: shadowColor.withValues(alpha: 0.5),
             spreadRadius: 5,
             blurRadius: 16,
-            offset: Offset(0, 4), // changes position of shadow
+            offset: const Offset(0, 4),
           ),
         ],
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Colors.blue, Colors.blueAccent],
+          colors: colors,
         ),
         borderRadius: BorderRadius.circular(30.0),
       ),
       child: TextButton(
         onPressed: onPressed,
+        style: ButtonStyle(
+          overlayColor: rippleColor != null
+              ? WidgetStateProperty.all(rippleColor)
+              : null,
+          shape: WidgetStateProperty.all(
+            RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(30.0),
+            ),
+          ),
+        ),
         child: Center(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              if (icon != null) ...[
-                icon!,
-              ],
+              if (icon != null) icon!,
+              if (icon != null) const SizedBox(width: 8.0),
               Text(
                 text,
-                style: TextStyle(color: Colors.white, fontSize: 16.0),
+                style: const TextStyle(color: Colors.white, fontSize: 16.0),
               ),
             ],
           ),
