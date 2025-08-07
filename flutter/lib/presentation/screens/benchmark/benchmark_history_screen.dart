@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
-import 'list_render_benchmark_screen.dart'; // Assumes BenchmarkResult is defined there
+import 'list_render_benchmark_screen.dart';
 
 class BenchmarkHistoryScreen extends StatelessWidget {
   final List<BenchmarkResult> results;

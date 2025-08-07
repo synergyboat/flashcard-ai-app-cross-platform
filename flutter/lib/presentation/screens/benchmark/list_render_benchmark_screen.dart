@@ -98,7 +98,6 @@ class BenchmarkResult {
   }
 
   double get droppedFramesPercent {
-    // Use platform-specific target frame time
     final droppedCount = frameTimesMs.where((time) => time > targetFrameTimeMs * 1.5).length;
     return frameTimesMs.isEmpty ? 0 : (droppedCount / frameTimesMs.length) * 100;
   }
@@ -138,7 +137,7 @@ class _ListRenderBenchmarkScreenState extends State<ListRenderBenchmarkScreen> {
   }
 
   void _startBenchmark() async {
-    await Future.delayed(const Duration(milliseconds: 100)); // Allow UI to settle
+    await Future.delayed(const Duration(milliseconds: 100));
     _runIteration();
   }
 
@@ -157,11 +156,9 @@ class _ListRenderBenchmarkScreenState extends State<ListRenderBenchmarkScreen> {
       final timeToFirstFrame = _renderStopwatch!.elapsed;
       _renderStopwatch!.stop();
 
-      // Different behavior based on benchmark type
       switch (widget.benchmarkType) {
         case BenchmarkType.staticRender:
         case BenchmarkType.memoryUsage:
-        // Just measure static rendering for a short period
           Future.delayed(const Duration(milliseconds: 1000), () {
             _recordIteration(timeToFirstFrame);
             _nextIteration();
@@ -169,7 +166,6 @@ class _ListRenderBenchmarkScreenState extends State<ListRenderBenchmarkScreen> {
           break;
 
         case BenchmarkType.scrollPerformance:
-        // Start auto-scroll after a brief delay
           Future.delayed(const Duration(milliseconds: 300), () {
             _performScrollBenchmark(timeToFirstFrame);
           });
@@ -177,7 +173,6 @@ class _ListRenderBenchmarkScreenState extends State<ListRenderBenchmarkScreen> {
       }
     });
 
-    // Trigger rebuild
     setState(() {});
   }
 
@@ -190,30 +185,26 @@ class _ListRenderBenchmarkScreenState extends State<ListRenderBenchmarkScreen> {
 
     final maxScroll = _scrollController.position.maxScrollExtent;
 
-    // Platform-specific scroll speeds (slower on lower-performance platforms)
     double scrollSpeed;
     if (kIsWeb) {
-      scrollSpeed = 300.0; // Slower for web due to JS overhead
+      scrollSpeed = 300.0;
     } else if (PlatformInfo.isMobile) {
-      scrollSpeed = 500.0; // Standard mobile scroll speed
+      scrollSpeed = 500.0;
     } else {
-      scrollSpeed = 800.0; // Faster for desktop
+      scrollSpeed = 800.0;
     }
 
     final scrollDuration = Duration(milliseconds: (maxScroll / scrollSpeed * 1000).toInt());
 
-    // Start measuring scroll performance
     _renderStopwatch = Stopwatch()..start();
 
     try {
-      // Perform the scroll
       await _scrollController.animateTo(
         maxScroll,
         duration: scrollDuration,
         curve: Curves.linear,
       );
 
-      // Scroll back to top for next iteration (faster return)
       await _scrollController.animateTo(
         0,
         duration: Duration(milliseconds: 500),
@@ -225,7 +216,6 @@ class _ListRenderBenchmarkScreenState extends State<ListRenderBenchmarkScreen> {
 
     _renderStopwatch!.stop();
 
-    // Wait a bit more to capture post-scroll frames
     Future.delayed(const Duration(milliseconds: 200), () {
       _recordIteration(timeToFirstFrame);
       _nextIteration();
@@ -289,7 +279,6 @@ class _ListRenderBenchmarkScreenState extends State<ListRenderBenchmarkScreen> {
   void _generateScientificReport() {
     if (_results.isEmpty) return;
 
-    // Calculate statistics across iterations
     final avgFrameTimes = _results.map((r) => r.averageFrameTimeMs).toList();
     final firstFrameTimes = _results.map((r) => r.timeToFirstFrame.inMilliseconds).toList();
     final memoryUsages = _results.map((r) => r.memoryDeltaMB).toList();
@@ -409,7 +398,6 @@ ${_generatePlatformNotes()}
   }
 
   Widget _buildLightweightItem(int index) {
-    // Use local content only for consistent benchmarking
     return Container(
       height: 80,
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

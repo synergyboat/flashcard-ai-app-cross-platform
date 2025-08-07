@@ -42,8 +42,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import kotlin.math.min
 
-private const val TARGET_FRAME_MS = 16.67
-private const val ITEM_HEIGHT = 80
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -136,12 +134,10 @@ fun buildWindowedFrameChips(result: BenchmarkResult, windowSize: Int = 5) {
     windowedAverages.forEach { avg ->
         AssistChip(
             onClick = {},
-            label = { Text("${"%.1f".format(avg)}") },
+            label = { Text("%.1f".format(avg)) },
             colors = if (avg > result.targetFrameTimeMs * 1.5) AssistChipDefaults.assistChipColors(containerColor = Color.Red.copy(alpha = 0.2f))
             else AssistChipDefaults.assistChipColors(containerColor = Color.Green.copy(alpha = 0.2f)),
             modifier = Modifier.padding(end = 4.dp, bottom = 4.dp)
         )
     }
 }
-
-// Existing ListRenderBenchmarkScreen and other logic remains the same from previous code

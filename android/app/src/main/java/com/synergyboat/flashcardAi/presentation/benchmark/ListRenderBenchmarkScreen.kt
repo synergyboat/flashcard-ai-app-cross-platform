@@ -130,7 +130,6 @@ fun ListRenderBenchmarkScreen(
 ) {
     val context = LocalContext.current
     val density = LocalDensity.current
-    val activity = remember(context) { context as Activity }
 
     val frameCollector = remember { FrameTimingCollector() }
     var results by remember { mutableStateOf<List<BenchmarkResult>>(emptyList()) }
@@ -140,7 +139,6 @@ fun ListRenderBenchmarkScreen(
 
     val listState = rememberLazyListState()
 
-    // Record baseline memory similar to Flutter
     fun recordBaselineMemory() {
         if (PlatformInfo.supportsMemoryProfiling) {
             System.gc()
@@ -154,7 +152,6 @@ fun ListRenderBenchmarkScreen(
         }
     }
 
-    // Perform smooth scroll benchmark similar to Flutter
     suspend fun performScrollBenchmark(timeToFirstFrame: Long): BenchmarkResult {
         if (listState.layoutInfo.totalItemsCount == 0) {
             return BenchmarkResult(timeToFirstFrame, emptyList(), 0.0, itemCount = itemCount)
@@ -230,17 +227,16 @@ fun ListRenderBenchmarkScreen(
             }
 
             BenchmarkType.ScrollPerformance -> {
-                delay(300) // Brief delay before scroll (matching Flutter)
-                frameCollector.stopCollecting() // Stop initial collection
+                delay(300)
+                frameCollector.stopCollecting()
                 performScrollBenchmark(timeToFirstFrame)
             }
         }
     }
 
-    // Main benchmark execution
     LaunchedEffect(itemCount, iterations, benchmarkType) {
         recordBaselineMemory()
-        delay(100) // Allow UI to settle (matching Flutter)
+        delay(100)
 
         results = emptyList()
         currentIteration = 0
@@ -253,7 +249,6 @@ fun ListRenderBenchmarkScreen(
 
             Log.d("BenchmarkReport", "Iteration ${iteration + 1} complete: ${String.format("%.2f", result.averageFrameTimeMs)}ms avg")
 
-            // Wait between iterations (matching Flutter)
             if (iteration < iterations - 1) {
                 delay(500)
             }
@@ -323,7 +318,6 @@ fun ListRenderBenchmarkScreen(
 
 @Composable
 fun BenchmarkItem(index: Int, currentIteration: Int) {
-    // Memoize color calculation to reduce recomposition overhead
     val itemColor = remember(index) {
         Color(
             red = (index * 50) % 256,
@@ -349,7 +343,6 @@ fun BenchmarkItem(index: Int, currentIteration: Int) {
                 .fillMaxSize(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Avatar circle (matching Flutter's implementation)
             Box(
                 modifier = Modifier
                     .size(48.dp)
@@ -387,14 +380,11 @@ fun BenchmarkItem(index: Int, currentIteration: Int) {
     }
 }
 
-// Improved memory measurement (matching Flutter's approach)
 fun getCurrentMemoryUsageMB(context: Context): Long {
     val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
     val memInfo = ActivityManager.MemoryInfo()
     activityManager.getMemoryInfo(memInfo)
 
-    // Get process-specific memory usage (closer to Flutter's ProcessInfo.currentRss)
-    val pid = android.os.Process.myPid()
     val memoryInfo = Debug.MemoryInfo()
     Debug.getMemoryInfo(memoryInfo)
 
@@ -404,7 +394,6 @@ fun getCurrentMemoryUsageMB(context: Context): Long {
     return totalPssMB
 }
 
-// Statistical helper functions (matching Flutter's implementation)
 fun List<Double>.standardDeviation(): Double {
     if (size < 2) return 0.0
     val mean = average()
@@ -417,7 +406,6 @@ fun List<Double>.mean(): Double = if (isEmpty()) 0.0 else average()
 fun generateScientificReport(results: List<BenchmarkResult>, benchmarkType: BenchmarkType) {
     if (results.isEmpty()) return
 
-    // Calculate statistics across iterations (matching Flutter's approach)
     val avgFrameTimes = results.map { it.averageFrameTimeMs }
     val firstFrameTimes = results.map { it.timeToFirstFrame.toDouble() }
     val memoryUsages = results.map { it.memoryDeltaMB }
