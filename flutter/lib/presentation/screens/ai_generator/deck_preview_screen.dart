@@ -100,7 +100,7 @@ class _DeckPreviewScreenState extends State<DeckPreviewScreen> with TickerProvid
             onPressed: ()=>{
               _createNewDeckUseCase(deck)
               .then((value){
-                if (mounted) {
+                if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         backgroundColor: Colors.green,

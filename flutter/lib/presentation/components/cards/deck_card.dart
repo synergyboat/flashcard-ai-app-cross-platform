@@ -244,7 +244,7 @@ class _DeckCardState extends State<DeckCard> with SingleTickerProviderStateMixin
               onPressed: () async {
                 await widget.deleteDeckUseCase(deck);
                 widget.refreshDecks?.call();
-                if (mounted){
+                if (context.mounted){
                   Navigator.of(context).pop();
                   Navigator.of(context).pop();
                 }
@@ -380,7 +380,7 @@ class _DeckCardState extends State<DeckCard> with SingleTickerProviderStateMixin
                             deck = deck.copyWith(name: nameEditValue, description: descriptionEditValue);
                           });
                           await widget.updateDeckUseCase(deck);
-                          if (mounted) {
+                          if (context.mounted) {
                             Navigator.of(context).pop();
                           }
                         },

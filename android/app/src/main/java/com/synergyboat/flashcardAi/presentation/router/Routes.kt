@@ -7,4 +7,8 @@ sealed class Routes(val route: String) {
     object DeckDetails : Routes("deck_details") {
         fun createRoute(deck: String): String = "$route/$deck"
     }
+    object Benchmark : Routes("benchmark")
+    object BenchmarkHistory : Routes("benchmark_history") {
+        fun createRoute(benchmarkType: String): String = "$route/$benchmarkType"
+    }
 }

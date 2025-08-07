@@ -423,15 +423,18 @@ class _DeckDetailsScreenState extends State<DeckDetailsScreen> with TickerProvid
                       GradientButton(
                         text: "Save changes",
                         onPressed: () async {
+                          final navigator = Navigator.of(context);
+                          flashcard = flashcard.copyWith(answer: _answerEditValue, question: _questionEditValue);
                           await _updateFlashcardUseCase(flashcard);
                           setState(() {
-                            flashcard = flashcard.copyWith(answer: _answerEditValue, question: _questionEditValue);
                             _flashcards[currentIndex] = flashcard;
                             deck = deck.copyWith(flashcards: _flashcards);
                           });
-                          if (mounted) {
-                            Navigator.of(context).pop();
+                          if (!mounted) {
+                            return;
                           }
+                          navigator.pop();
+
                         },
                         shadowColor: Colors.blueAccent.withValues(alpha: 0.8),
                         icon: const Icon(Icons.check, color: Colors.white, size: 20.0),
@@ -499,14 +502,14 @@ class _DeckDetailsScreenState extends State<DeckDetailsScreen> with TickerProvid
               ),
               child: const Text('Confirm'),
               onPressed: () async {
+                final navigator = Navigator.of(context);
                 await _deleteFlashcardUseCase(flashcard);
-                if (mounted) {
-                  setState(() {
-                    _flashcards.removeAt(currentIndex);
-                    Navigator.of(context).pop();
-                    Navigator.of(context).pop();
-                  });
-                }
+                setState(() {
+                  _flashcards.removeAt(currentIndex);
+                  navigator.pop();
+                  navigator.pop();
+
+                });
               },
             ),
           ],

@@ -19,7 +19,6 @@ class AIGenerateDeckScreen extends StatefulWidget {
 }
 
 class _AIGenerateDeckScreenState extends State<AIGenerateDeckScreen> {
-  final Logger _logger = getIt<Logger>();
   String _promptText = "";
   int _numberOfCards = 10;
   final GenerateDeckWithAIUseCase _generateDeckWithAIUseCase = getIt<GenerateDeckWithAIUseCase>();
@@ -166,7 +165,7 @@ class _AIGenerateDeckScreenState extends State<AIGenerateDeckScreen> {
                                         setState(() {
                                           _isGenerating = false;
                                         });
-                                        if (mounted){
+                                        if (context.mounted){
                                           context.pushNamed("deck_preview", extra: deck);
                                         }
                                       }),
