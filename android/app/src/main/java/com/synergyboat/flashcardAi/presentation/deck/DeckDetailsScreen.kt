@@ -300,7 +300,7 @@ fun DeckDetailsScreen(
                 editingFlashcard = null
             },
             onDelete = { flashcard ->
-//                viewModel.deleteFlashcard(flashcard)
+                viewModel.deleteFlashcard(flashcard)
                 if (currentIndex > 0) currentIndex--
                 showEditSheet = false
                 editingFlashcard = null
@@ -542,7 +542,6 @@ fun showDeleteFlashcardDialog(
             TextButton(
                 onClick = {
                     scope.launch {
-//                        viewModel.deleteDeck(deck)
                         onConfirm(flashcard)
                     }
                 }

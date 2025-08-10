@@ -4,7 +4,8 @@ import android.R
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.synergyboat.flashcardAi.domain.entities.Deck
-import com.synergyboat.flashcardAi.domain.usecase.GetAllDecksUseCase
+import com.synergyboat.flashcardAi.domain.usecase.deck.DeleteDeckUseCase
+import com.synergyboat.flashcardAi.domain.usecase.deck.GetAllDecksUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -18,7 +19,8 @@ import kotlin.coroutines.cancellation.CancellationException
 
 @HiltViewModel
 class HomeScreenViewModel @Inject constructor(
-    private val getAllDecksUseCase: GetAllDecksUseCase
+    private val getAllDecksUseCase: GetAllDecksUseCase,
+    private val deleteDeckUseCase: DeleteDeckUseCase
 ) : ViewModel() {
     // This ViewModel can be used to manage the state and logic for the Home Screen.
     // You can add LiveData or StateFlow properties here to hold the UI state.
@@ -70,6 +72,7 @@ class HomeScreenViewModel @Inject constructor(
 
     fun deleteDeck(deck: Deck) {
         viewModelScope.launch {
+            deleteDeckUseCase(deck)
             refreshDecks()
         }
     }
