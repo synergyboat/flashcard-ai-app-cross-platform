@@ -1,12 +1,18 @@
 package com.synergyboat.flashcardAi.presentation.home
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -16,8 +22,8 @@ import com.synergyboat.flashcardAi.domain.entities.Deck
 import com.synergyboat.flashcardAi.presentation.components.FlashcardAppBar
 import com.synergyboat.flashcardAi.presentation.components.FlashcardBottomActionBar
 import com.synergyboat.flashcardAi.presentation.components.buttons.AIButton
-import com.synergyboat.flashcardAi.presentation.components.containers.DeckCollectionGrid
 import com.synergyboat.flashcardAi.presentation.home.viewModels.HomeScreenViewModel
+import com.synergyboat.flashcardAi.presentation.components.containers.DeckCollectionGrid
 
 @Composable
 fun HomeScreen(
@@ -26,6 +32,7 @@ fun HomeScreen(
 ) {
 
     val decks: List<Deck> = viewModel.decks.collectAsState().value
+    val isLoading: Boolean = viewModel.isLoading.collectAsState().value
     val lifecycleOwner = LocalLifecycleOwner.current
 
     DisposableEffect(lifecycleOwner) {
@@ -55,7 +62,18 @@ fun HomeScreen(
         },
         content = { padding ->
             Box(modifier = Modifier.padding(padding)) {
-                if (decks.isEmpty()) {
+                if(isLoading)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ){
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(48.dp),
+                            color = Color(0xFF0B88EA)
+                        )
+                    }
+                else if (decks.isEmpty()) {
                     HomeEmptyState(
                         onGenerateClicked = {
                             navController.navigate("ai_generate_deck")
@@ -63,9 +81,16 @@ fun HomeScreen(
                     )
                 } else {
                     DeckCollectionGrid(
-                        navController = navController,
+                        viewModel = viewModel,
                         decks = decks,
-                        onDeckClick = {})
+                        onDeckClick = {
+                            val deckJson = java.net.URLEncoder.encode(
+                                kotlinx.serialization.json.Json.encodeToString(it),
+                                Charsets.UTF_8.toString()
+                            )
+                            navController.navigate("deck_details/$deckJson")
+                        }
+                    )
                 }
             }
         }
