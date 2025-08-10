@@ -1,6 +1,5 @@
 package com.synergyboat.flashcardAi.presentation.deck
 
-import android.content.Context
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -18,7 +17,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -28,7 +26,6 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -39,7 +36,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -55,11 +51,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -71,7 +63,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.synergyboat.flashcardAi.domain.entities.Deck
 import com.synergyboat.flashcardAi.domain.entities.Flashcard
@@ -79,7 +70,6 @@ import com.synergyboat.flashcardAi.presentation.components.FlashcardAppBar
 import com.synergyboat.flashcardAi.presentation.deck.viewModels.DeckDetailsScreenViewModel
 import kotlinx.coroutines.launch
 import kotlin.math.absoluteValue
-import kotlin.math.pow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -97,7 +87,6 @@ fun DeckDetailsScreen(
     }
 
     val flashcards by viewModel.flashcards.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
 
     var currentIndex by remember { mutableIntStateOf(0) }
@@ -106,13 +95,10 @@ fun DeckDetailsScreen(
     var showEditSheet by remember { mutableStateOf(false) }
     var editingFlashcard by remember { mutableStateOf<Flashcard?>(null) }
 
-    val visibleFlashcards = remember(currentIndex, flashcards) {
-        if (flashcards.isEmpty()) emptyList()
-        else flashcards.subList(
-            currentIndex,
-            (currentIndex + 3).coerceAtMost(flashcards.size)
-        )
-    }
+    val maxVisible = 3
+    val visibleFlashcards = (0 until maxVisible)
+        .map { currentIndex + it }
+        .filter { it < flashcards.size }
 
     Scaffold(
         topBar = {
@@ -203,20 +189,22 @@ fun DeckDetailsScreen(
                         .fillMaxWidth(),
                     contentAlignment = Alignment.Center
                 ) {
-                    visibleFlashcards.reversed().forEachIndexed { i, flashcard ->
-                        val isTop = i == 0
-                        val isSecond = i == 1
-                        val offsetY = (i * 12).dp
-                        val baseScale = 1f - (i * 0.05f)
-                        val z = 3 - i
+                    for (idx in visibleFlashcards.indices.reversed()) {
+                        val cardIndex = visibleFlashcards[idx]
+                        val flashcard = flashcards[cardIndex]
 
-                        // Calculate adjusted scale for second card during drag
+                        val positionFromTop = cardIndex - currentIndex
+                        val isTop = positionFromTop == 0
+                        val isSecond = positionFromTop == 1
+
+                        val offsetY = (positionFromTop * -24).dp
+                        val baseScale = 1f - (positionFromTop * 0.05f)
+                        val z = (visibleFlashcards.size - positionFromTop).toFloat()
+
                         val adjustedScale = if (isSecond) {
                             val progress = (swipeOffset.value.absoluteValue / 150f).coerceIn(0f, 1f)
                             baseScale + (1f - baseScale - 0.05f) * progress
-                        } else {
-                            baseScale
-                        }
+                        } else baseScale
 
                         val modifier = Modifier
                             .offset(y = -offsetY)
@@ -226,7 +214,7 @@ fun DeckDetailsScreen(
                                 translationX = if (isTop) swipeOffset.value else 0f
                                 alpha = if (isTop) opacity else 1f
                             }
-                            .zIndex(z.toFloat())
+                            .zIndex(z)
                             .fillMaxWidth()
                             .height(400.dp)
                             .then(
@@ -260,8 +248,7 @@ fun DeckDetailsScreen(
                                             coroutineScope.launch {
                                                 val newOffset = swipeOffset.value + dragAmount
                                                 swipeOffset.snapTo(newOffset)
-                                                opacity = ((200f - newOffset.absoluteValue) / 200f)
-                                                    .coerceIn(0f, 1f)
+                                                opacity = ((200f - newOffset.absoluteValue) / 200f).coerceIn(0f, 1f)
                                             }
                                         }
                                     )
@@ -273,6 +260,7 @@ fun DeckDetailsScreen(
                             flashcard = flashcard
                         )
                     }
+
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -295,7 +283,7 @@ fun DeckDetailsScreen(
                 editingFlashcard = null
             },
             onSave = { flashcard, question, answer ->
-//                viewModel.updateFlashcard(flashcard, question, answer)
+                viewModel.updateFlashcard(flashcard, question, answer)
                 showEditSheet = false
                 editingFlashcard = null
             },
@@ -380,8 +368,8 @@ fun EditFlashcardBottomSheet(
     onDelete: (Flashcard) -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    var questionValue by remember { mutableStateOf(flashcard.question.orEmpty()) }
-    var answerValue by remember { mutableStateOf(flashcard.answer.orEmpty()) }
+    var questionEditValue by remember { mutableStateOf(flashcard.question.orEmpty()) }
+    var answerEditValue by remember { mutableStateOf(flashcard.answer.orEmpty()) }
 
     // NEW: state to show/hide the delete dialog
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -435,8 +423,8 @@ fun EditFlashcardBottomSheet(
 
             Text("Question", style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp))
             OutlinedTextField(
-                value = questionValue,
-                onValueChange = { questionValue = it },
+                value = questionEditValue,
+                onValueChange = { questionEditValue = it },
                 placeholder = { Text("Question") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = false,
@@ -447,8 +435,8 @@ fun EditFlashcardBottomSheet(
 
             Text("Answer", style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp))
             OutlinedTextField(
-                value = answerValue,
-                onValueChange = { answerValue = it },
+                value = answerEditValue,
+                onValueChange = { answerEditValue = it },
                 placeholder = { Text("Answer") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = false,
@@ -458,7 +446,7 @@ fun EditFlashcardBottomSheet(
             Spacer(Modifier.height(24.dp))
 
             Button(
-                onClick = { onSave(flashcard, questionValue, answerValue) },
+                onClick = { onSave(flashcard, questionEditValue, answerEditValue) },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3)),
                 shape = RoundedCornerShape(12.dp)

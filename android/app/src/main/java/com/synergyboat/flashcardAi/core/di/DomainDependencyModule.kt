@@ -15,7 +15,9 @@ import com.synergyboat.flashcardAi.domain.usecase.deck.DeleteDeckUseCase
 import com.synergyboat.flashcardAi.domain.usecase.deck.GetAllDecksUseCase
 import com.synergyboat.flashcardAi.domain.usecase.flashcard.GetFlashcardsFromDeckUseCase
 import com.synergyboat.flashcardAi.domain.usecase.ai.GenerateDeckWithAIUseCase
+import com.synergyboat.flashcardAi.domain.usecase.deck.UpdateDeckDetailsUseCase
 import com.synergyboat.flashcardAi.domain.usecase.flashcard.DeleteFlashcardUseCase
+import com.synergyboat.flashcardAi.domain.usecase.flashcard.UpdateFlashcardUseCase
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -117,6 +119,22 @@ object UseCaseDependencyModule {
     fun providesDeleteFlashcardUseCase(
         flashcardRepository: FlashcardRepository
     ) = DeleteFlashcardUseCase(
+        repository = flashcardRepository
+    )
+
+    @Provides
+    @Singleton
+    fun providesUpdateDeckDetailsUseCase(
+        deckRepository: DeckRepository
+    ) = UpdateDeckDetailsUseCase(
+        repository = deckRepository
+    )
+
+    @Provides
+    @Singleton
+    fun providesUpdateFlashcardUseCase(
+        flashcardRepository: FlashcardRepository
+    ) = UpdateFlashcardUseCase(
         repository = flashcardRepository
     )
 }
