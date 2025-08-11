@@ -12,10 +12,6 @@ import { SCREEN_NAMES, SCREEN_TITLES, COLORS } from './src/config';
 
 // Screens
 
-
-
-
-
 export type RootStackParamList = {
   [SCREEN_NAMES.HOME]: undefined;
   [SCREEN_NAMES.AI_GENERATE]: undefined;
@@ -43,24 +39,24 @@ export default function App() {
             },
           }}
         >
-          <Stack.Screen 
-            name={SCREEN_NAMES.HOME} 
-            component={HomeScreen} 
+          <Stack.Screen
+            name={SCREEN_NAMES.HOME}
+            component={HomeScreen}
             options={{ title: SCREEN_TITLES.HOME }}
           />
-          <Stack.Screen 
-            name={SCREEN_NAMES.AI_GENERATE} 
-            component={AIGenerateScreen} 
+          <Stack.Screen
+            name={SCREEN_NAMES.AI_GENERATE}
+            component={AIGenerateScreen}
             options={{ title: SCREEN_TITLES.AI_GENERATE }}
           />
-          <Stack.Screen 
-            name={SCREEN_NAMES.DECK_DETAILS} 
-            component={DeckDetailsScreen} 
+          <Stack.Screen
+            name={SCREEN_NAMES.DECK_DETAILS}
+            component={DeckDetailsScreen}
             options={{ title: SCREEN_TITLES.DECK_DETAILS }}
           />
-          <Stack.Screen 
-            name={SCREEN_NAMES.STUDY} 
-            component={StudyScreen} 
+          <Stack.Screen
+            name={SCREEN_NAMES.STUDY}
+            component={StudyScreen}
             options={{ title: SCREEN_TITLES.STUDY }}
           />
         </Stack.Navigator>
