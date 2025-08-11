@@ -1,4 +1,4 @@
-package com.synergyboat.flashcardAi.domain.usecase
+package com.synergyboat.flashcardAi.domain.usecase.flashcard
 
 import com.synergyboat.flashcardAi.domain.entities.Flashcard
 import com.synergyboat.flashcardAi.domain.repository.FlashcardRepository

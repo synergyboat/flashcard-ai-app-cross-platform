@@ -23,12 +23,12 @@ class FlashcardRepositoryImpl @Inject constructor(
             .also { logger.info("Retrieved ${it.size} flashcards for deck ID $deckId") }
     }
 
-    override suspend fun deleteFlashcard(id: Long) {
-        TODO("Not yet implemented")
+    override suspend fun deleteFlashcard(flashcard: Flashcard) {
+        flashcardDao.deleteFlashcard(FlashcardEntityFactory.fromFlashcard(flashcard))
     }
 
-    override suspend fun updateFlashcard(flashcard: Flashcard): Flashcard {
-        TODO("Not yet implemented")
+    override suspend fun updateFlashcard(flashcard: Flashcard) {
+        flashcardDao.updateFlashcard(FlashcardEntityFactory.fromFlashcard(flashcard))
     }
 
     override suspend fun getFlashcardById(id: Long): Flashcard? {

@@ -7,7 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.synergyboat.flashcardAi.domain.entities.Deck
-import com.synergyboat.flashcardAi.domain.usecase.CreateNewDeckUseCase
+import com.synergyboat.flashcardAi.domain.usecase.deck.CreateNewDeckUseCase
 import com.synergyboat.flashcardAi.domain.usecase.ai.GenerateDeckWithAIUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch

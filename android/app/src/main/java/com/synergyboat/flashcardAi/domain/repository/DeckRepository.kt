@@ -13,8 +13,8 @@ interface DeckRepository {
 
     suspend fun getDeckById(id: Long): Deck?
 
-    suspend fun deleteDeck(id: Long)
+    suspend fun deleteDeck(deck: Deck)
 
-    suspend fun updateDeck(deck: Deck): Deck
+    suspend fun updateDeck(deck: Deck)
 
 }

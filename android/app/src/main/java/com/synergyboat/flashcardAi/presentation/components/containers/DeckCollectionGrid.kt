@@ -1,101 +1,114 @@
+@file:OptIn(ExperimentalFoundationApi::class)
+
 package com.synergyboat.flashcardAi.presentation.components.containers
 
-import android.os.Build
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.runtime.Composable
+import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
+
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.synergyboat.flashcardAi.domain.entities.Deck
 import com.synergyboat.flashcardAi.presentation.components.cards.DeckCard
-import com.synergyboat.flashcardAi.presentation.router.Routes
-import kotlinx.serialization.json.Json
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
+import com.synergyboat.flashcardAi.presentation.home.viewModels.HomeScreenViewModel
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun DeckCollectionGrid(
-    navController: NavController,
     decks: List<Deck>,
-    onDeckClick: (Deck) -> Unit
+    onDeckClick: (Deck) -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: HomeScreenViewModel = hiltViewModel<HomeScreenViewModel>()
 ) {
-    val screenWidthDp = LocalConfiguration.current.screenWidthDp
-    val isMac = Build.DEVICE.lowercase().contains("mac") // platform check fallback
-    val crossAxisCount = if (isMac || screenWidthDp > 1000) 6 else 2
+    var isShaking by remember { mutableStateOf(false) }
+    val configuration = LocalConfiguration.current
+    val isDesktop = configuration.screenWidthDp > 600 // Simple desktop detection
+    val backgroundColor = Color(0xFFFDF7FE)
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp)
-    ) {
+    Box(modifier = modifier.fillMaxSize()) {
         LazyVerticalGrid(
-            columns = GridCells.Fixed(crossAxisCount),
-            contentPadding = PaddingValues(horizontal = 16.dp),
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            columns = GridCells.Fixed(if (isDesktop) 6 else 2),
+            contentPadding = PaddingValues(top = 8.dp, bottom = 80.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .pointerInput(Unit) {
+                    detectTapGestures {
+                        if (isShaking) {
+                            isShaking = false
+                        }
+                    }
+                }
         ) {
-            items(decks) { deck ->
-                DeckCard(deck = deck, onClick = {
-                    val encodedDeck = URLEncoder.encode(
-                        Json.encodeToString(deck),
-                        StandardCharsets.UTF_8.toString()
-                    )
-                    navController.navigate(Routes.DeckDetails.createRoute(encodedDeck))
-                })
+            itemsIndexed(decks) { index, deck ->
+                DeckCard(
+                    deck = deck,
+                    isShaking = isShaking,
+                    viewModel = viewModel,
+                    onDeckSelected = { selectedDeck ->
+                        if (isShaking) {
+                            isShaking = false
+                        } else {
+                            onDeckClick(selectedDeck)
+                        }
+                    },
+                    onLongPress = {
+                        isShaking = true
+                    }
+                )
             }
         }
-
-        // Top fade gradient
+        // Top gradient overlay
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(60.dp)
-                .align(Alignment.TopCenter)
                 .background(
-                    Brush.verticalGradient(
+                    brush = Brush.verticalGradient(
                         colors = listOf(
-                            Color(0xfffdf7fe),
-                            Color(0xfffdf7fe).copy(alpha = 0.5f),
-                            Color(0xfffdf7fe).copy(alpha = 0.0f)
+                            backgroundColor,
+                            backgroundColor.copy(alpha = 0.5f),
+                            backgroundColor.copy(alpha = 0f),
+                            backgroundColor.copy(alpha = 0f),
+                            backgroundColor.copy(alpha = 0f),
+                            backgroundColor.copy(alpha = 0f)
                         )
                     )
                 )
+                .zIndex(1f)
         )
 
-        // Bottom fade gradient
+        // Bottom gradient overlay
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(60.dp)
                 .align(Alignment.BottomCenter)
                 .background(
-                    Brush.verticalGradient(
+                    brush = Brush.verticalGradient(
                         colors = listOf(
-                            Color(0xfffdf7fe),
-                            Color(0xfffdf7fe).copy(alpha = 0.5f),
-                            Color(0xfffdf7fe).copy(alpha = 0.0f)
+                            backgroundColor,
+                            backgroundColor.copy(alpha = 0.5f),
+                            backgroundColor.copy(alpha = 0f),
+                            backgroundColor.copy(alpha = 0f)
                         ),
                         startY = Float.POSITIVE_INFINITY,
                         endY = 0f
                     )
                 )
+                .zIndex(1f)
         )
     }
 }

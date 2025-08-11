@@ -20,8 +20,7 @@ class DeckRepositoryImpl @Inject constructor(val deckDao: DeckDao) : DeckReposit
     }
 
     override suspend fun createDeck(deck: Deck): Long {
-        // TODO("Not yet implemented")
-        return 0
+        TODO("Not yet implemented")
     }
 
     override suspend fun createDeckWithFlashcards(deck: Deck): Long {
@@ -42,12 +41,12 @@ class DeckRepositoryImpl @Inject constructor(val deckDao: DeckDao) : DeckReposit
         }
     }
 
-    override suspend fun deleteDeck(id: Long) {
-        TODO("Not yet implemented")
+    override suspend fun deleteDeck(deck: Deck) {
+        deckDao.deleteDeck(DeckEntityFactory.fromDeck(deck))
     }
 
-    override suspend fun updateDeck(deck: Deck): Deck {
-        TODO("Not yet implemented")
+    override suspend fun updateDeck(deck: Deck) {
+        deckDao.updateDeck(DeckEntityFactory.fromDeck(deck))
     }
 
     override suspend fun getDeckById(id: Long): Deck? {

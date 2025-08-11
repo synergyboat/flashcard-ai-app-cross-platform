@@ -9,12 +9,15 @@ import com.synergyboat.flashcardAi.domain.repository.DeckRepository
 import com.synergyboat.flashcardAi.domain.repository.FlashcardRepository
 import com.synergyboat.flashcardAi.domain.repository.ai.AiGeneratorRepository
 import com.synergyboat.flashcardAi.domain.repository.ai.AiPromptBuilderRepository
-import com.synergyboat.flashcardAi.domain.usecase.CreateMultipleFlashcardsToDeckUseCase
-import com.synergyboat.flashcardAi.domain.usecase.CreateNewDeckUseCase
-import com.synergyboat.flashcardAi.domain.usecase.DeleteDeckUseCase
-import com.synergyboat.flashcardAi.domain.usecase.GetAllDecksUseCase
-import com.synergyboat.flashcardAi.domain.usecase.GetFlashcardsFromDeckUseCase
+import com.synergyboat.flashcardAi.domain.usecase.deck.CreateMultipleFlashcardsToDeckUseCase
+import com.synergyboat.flashcardAi.domain.usecase.deck.CreateNewDeckUseCase
+import com.synergyboat.flashcardAi.domain.usecase.deck.DeleteDeckUseCase
+import com.synergyboat.flashcardAi.domain.usecase.deck.GetAllDecksUseCase
+import com.synergyboat.flashcardAi.domain.usecase.flashcard.GetFlashcardsFromDeckUseCase
 import com.synergyboat.flashcardAi.domain.usecase.ai.GenerateDeckWithAIUseCase
+import com.synergyboat.flashcardAi.domain.usecase.deck.UpdateDeckDetailsUseCase
+import com.synergyboat.flashcardAi.domain.usecase.flashcard.DeleteFlashcardUseCase
+import com.synergyboat.flashcardAi.domain.usecase.flashcard.UpdateFlashcardUseCase
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -109,5 +112,29 @@ object UseCaseDependencyModule {
         aiGeneratorRepository: AiGeneratorRepository,
     ) = GenerateDeckWithAIUseCase(
         repository = aiGeneratorRepository
+    )
+
+    @Provides
+    @Singleton
+    fun providesDeleteFlashcardUseCase(
+        flashcardRepository: FlashcardRepository
+    ) = DeleteFlashcardUseCase(
+        repository = flashcardRepository
+    )
+
+    @Provides
+    @Singleton
+    fun providesUpdateDeckDetailsUseCase(
+        deckRepository: DeckRepository
+    ) = UpdateDeckDetailsUseCase(
+        repository = deckRepository
+    )
+
+    @Provides
+    @Singleton
+    fun providesUpdateFlashcardUseCase(
+        flashcardRepository: FlashcardRepository
+    ) = UpdateFlashcardUseCase(
+        repository = flashcardRepository
     )
 }
