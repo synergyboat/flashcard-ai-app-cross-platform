@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  FlatList,
   TouchableOpacity,
   Alert,
+  Platform,
+  ToastAndroid,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -15,7 +16,9 @@ import { Deck, Flashcard } from '../types';
 import { databaseORMService } from '../services/database-orm';
 import GradientButton from '../components/GradientButton';
 import GradientBackground from '../components/GradientBackground';
-import { SCREEN_NAMES } from '../config';
+import EditFlashcardModal from '../components/EditFlashcardModal';
+import CardStack from '../components/CardStack';
+import { SCREEN_NAMES, COLORS, TYPOGRAPHY } from '../config';
 
 type DeckDetailsScreenNavigationProp = StackNavigationProp<RootStackParamList, typeof SCREEN_NAMES.DECK_DETAILS>;
 type DeckDetailsScreenRouteProp = RouteProp<RootStackParamList, typeof SCREEN_NAMES.DECK_DETAILS>;
@@ -23,23 +26,42 @@ type DeckDetailsScreenRouteProp = RouteProp<RootStackParamList, typeof SCREEN_NA
 export default function DeckDetailsScreen() {
   const navigation = useNavigation<DeckDetailsScreenNavigationProp>();
   const route = useRoute<DeckDetailsScreenRouteProp>();
-  const { deckId, deckName } = route.params;
+  const { deckId, deckName, previewDeck } = route.params ?? ({} as any);
+
+  const isPreview = !!previewDeck && !deckId;
 
   const [deck, setDeck] = useState<Deck | null>(null);
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [iosToastVisible, setIosToastVisible] = useState(false);
+  const [completionVisible, setCompletionVisible] = useState(false);
 
   useEffect(() => {
     loadDeckData();
-  }, [deckId]);
+  }, [deckId, isPreview]);
 
   const loadDeckData = async () => {
     try {
+      await databaseORMService.init();
+
+      if (isPreview && previewDeck) {
+        setDeck({ name: previewDeck.name, description: previewDeck.description });
+        setFlashcards(previewDeck.flashcards as Flashcard[]);
+        setLoading(false);
+        return;
+      }
+
+      if (!deckId) {
+        setLoading(false);
+        return;
+      }
+
       const [deckData, cards] = await Promise.all([
         databaseORMService.getDeck(deckId),
         databaseORMService.getFlashcards(deckId),
       ]);
-      
       setDeck(deckData);
       setFlashcards(cards);
     } catch (error) {
@@ -50,58 +72,48 @@ export default function DeckDetailsScreen() {
     }
   };
 
-  const handleStartStudy = () => {
-    if (flashcards.length === 0) {
-      Alert.alert('No Cards', 'This deck has no flashcards to study.');
-      return;
+  const handleSwipeLeft = () => {
+    setCurrentIndex(prev => {
+      const next = prev + 1;
+      if (next >= flashcards.length) {
+        setCompletionVisible(true);
+      }
+      return next;
+    });
+  };
+
+  const showCreatedToastAndGoHome = (name: string) => {
+    if (Platform.OS === 'android') {
+      ToastAndroid.show('Deck created.', ToastAndroid.SHORT);
+      navigation.navigate(SCREEN_NAMES.HOME as never);
+    } else {
+      setIosToastVisible(true);
+      // Navigate immediately (same as Flutter code does after showing SnackBar)
+      navigation.navigate(SCREEN_NAMES.HOME as never);
     }
-    navigation.navigate(SCREEN_NAMES.STUDY, { deckId, deckName });
   };
 
-  const handleDeleteDeck = () => {
-    Alert.alert(
-      'Delete Deck',
-      'Are you sure you want to delete this deck? This action cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await databaseORMService.deleteDeck(deckId);
-              navigation.goBack();
-            } catch (error) {
-              console.error('Error deleting deck:', error);
-              Alert.alert('Error', 'Failed to delete deck');
-            }
-          },
-        },
-      ]
-    );
+  const handleSaveDeck = async () => {
+    try {
+      if (!isPreview || !previewDeck) return;
+      await databaseORMService.createDeckWithFlashcards(
+        { name: previewDeck.name, description: previewDeck.description },
+        previewDeck.flashcards
+      );
+      showCreatedToastAndGoHome(previewDeck.name);
+    } catch (e) {
+      console.error(e);
+      Alert.alert('Error', 'Failed to save deck');
+    }
   };
 
-  const renderFlashcard = ({ item, index }: { item: Flashcard; index: number }) => (
-    <View style={styles.flashcardItem}>
-      <View style={styles.cardNumber}>
-        <Text style={styles.cardNumberText}>{index + 1}</Text>
-      </View>
-      <View style={styles.cardContent}>
-        <Text style={styles.question} numberOfLines={2}>
-          {item.question}
-        </Text>
-        <Text style={styles.answer} numberOfLines={1}>
-          {item.answer}
-        </Text>
-      </View>
-    </View>
-  );
-
-  if (loading) {
+  if (loading || flashcards.length === 0) {
     return (
       <GradientBackground>
         <View style={styles.loadingContainer}>
-          <Text>Loading...</Text>
+          <Text style={styles.loadingText}>
+            {loading ? 'Loading...' : 'No flashcards in this deck'}
+          </Text>
         </View>
       </GradientBackground>
     );
@@ -110,47 +122,77 @@ export default function DeckDetailsScreen() {
   return (
     <GradientBackground>
       <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.deckName}>{deckName}</Text>
-        <Text style={styles.cardCount}>
-          {flashcards.length} card{flashcards.length !== 1 ? 's' : ''}
-        </Text>
-        {deck?.description && (
-          <Text style={styles.description}>{deck.description}</Text>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Ionicons name="chevron-back" size={24} color={COLORS.TEXT.PRIMARY} />
+          </TouchableOpacity>
+          <Text style={styles.deckName}>{deckName || previewDeck?.name || 'Deck Details'}</Text>
+          <Text style={styles.editButtonText} onPress={() => setEditModalVisible(true)}>Edit</Text>
+        </View>
+
+        {(deck?.description) && !isPreview && (
+          <Text style={styles.description}>{deck?.description || previewDeck?.description}</Text>
+        )}
+
+        <View style={styles.cardContainer}>
+          <CardStack
+            key={`card-${currentIndex}`}
+            flashcards={flashcards}
+            currentIndex={currentIndex}
+            onSwipeLeft={handleSwipeLeft}
+            isPreview={isPreview}
+          />
+        </View>
+
+        <View style={styles.buttonContainer}>
+          {isPreview ? (
+            <GradientButton title="Save Deck" onPress={handleSaveDeck} style={styles.closeButton} />
+          ) : (
+            <GradientButton title="Close" onPress={() => navigation.goBack()} style={styles.closeButton} />
+          )}
+        </View>
+
+        {iosToastVisible && (
+          <View style={styles.toast} pointerEvents="none">
+            <Ionicons name="checkmark" size={18} color="#fff" />
+            <Text style={styles.toastText}>Deck created.</Text>
+          </View>
+        )}
+        {completionVisible && (
+          <View style={styles.completionOverlay}>
+            <View style={styles.completionContent}>
+              <Text style={styles.completionTitle}>You're done!</Text>
+              <Text style={styles.completionText}>You've reached the end of this deck.</Text>
+              <View style={styles.completionButtons}>
+                <GradientButton
+                  title="Restart"
+                  onPress={() => {
+                    setCompletionVisible(false);
+                    setCurrentIndex(0);
+                  }}
+                  style={{ flex: 1, marginRight: 8 }}
+                />
+                <GradientButton
+                  title="Close"
+                  onPress={() => {
+                    setCompletionVisible(false);
+                    navigation.goBack();
+                  }}
+                  style={{ flex: 1, marginLeft: 8 }}
+                />
+              </View>
+            </View>
+          </View>
         )}
       </View>
 
-      <FlatList
-        data={flashcards}
-        renderItem={renderFlashcard}
-        keyExtractor={(item) => item.id?.toString() || ''}
-        contentContainerStyle={styles.listContainer}
-        showsVerticalScrollIndicator={false}
-        ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <Ionicons name="document-outline" size={48} color="#ccc" />
-            <Text style={styles.emptyStateText}>No flashcards in this deck</Text>
-          </View>
-        }
+      <EditFlashcardModal
+        visible={editModalVisible}
+        flashcard={flashcards[currentIndex] || null}
+        onClose={() => setEditModalVisible(false)}
+        onSave={() => { }}
+        onDelete={() => { }}
       />
-
-      <View style={styles.buttonContainer}>
-        <GradientButton
-          title="Start Study Session"
-          onPress={handleStartStudy}
-          disabled={flashcards.length === 0}
-          style={styles.studyButton}
-        />
-      </View>
-
-      <TouchableOpacity
-        style={styles.deleteButton}
-        onPress={handleDeleteDeck}
-      >
-        <Ionicons name="trash-outline" size={20} color="#ff4444" />
-        <Text style={styles.deleteButtonText}>Delete Deck</Text>
-      </TouchableOpacity>
-      </View>
     </GradientBackground>
   );
 }
@@ -158,114 +200,111 @@ export default function DeckDetailsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingHorizontal: 22,
+    paddingVertical: 22,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
+  loadingText: {
+    fontSize: TYPOGRAPHY.SIZES.MEDIUM,
+    color: COLORS.TEXT.SECONDARY,
+  },
   header: {
-    backgroundColor: '#FEF8FF',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 16,
+    paddingTop: 50,
+  },
+  backButton: {
+    padding: 4,
   },
   deckName: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333333',
-    marginBottom: 8,
+    fontSize: TYPOGRAPHY.SIZES.LARGE,
+    fontWeight: TYPOGRAPHY.WEIGHTS.MEDIUM,
+    color: COLORS.TEXT.PRIMARY,
+    flex: 1,
+    textAlign: 'center',
   },
-  cardCount: {
-    fontSize: 16,
-    color: '#666666',
-    marginBottom: 8,
+  editButton: {
+    padding: 4,
+  },
+  editButtonText: {
+    fontSize: TYPOGRAPHY.SIZES.MEDIUM,
+    color: COLORS.PRIMARY,
+    fontWeight: TYPOGRAPHY.WEIGHTS.MEDIUM,
   },
   description: {
-    fontSize: 14,
-    color: '#666666',
-    lineHeight: 20,
+    fontSize: TYPOGRAPHY.SIZES.MEDIUM,
+    color: COLORS.TEXT.SECONDARY,
+    textAlign: 'center',
+    paddingHorizontal: 16,
   },
-  listContainer: {
-    padding: 16,
-    paddingBottom: 120, // Space for buttons
-  },
-  flashcardItem: {
-    backgroundColor: '#ffffff',
-    borderRadius: 32,
-    borderWidth: 0.5,
-    borderColor: '#9E9E9E',
-    padding: 16,
-    marginBottom: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    elevation: 8,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-  },
-  cardNumber: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#0c7fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 16,
-  },
-  cardNumberText: {
-    color: 'white',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  cardContent: {
+  cardContainer: {
     flex: 1,
-  },
-  question: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#000000',
-    marginBottom: 4,
-  },
-  answer: {
-    fontSize: 14,
-    color: '#212121',
-  },
-  emptyState: {
+    justifyContent: 'flex-start',
     alignItems: 'center',
-    paddingVertical: 40,
-  },
-  emptyStateText: {
-    fontSize: 16,
-    color: '#666666',
-    marginTop: 12,
+    marginBottom: 20,
   },
   buttonContainer: {
-    position: 'absolute',
-    bottom: 60,
-    left: 20,
-    right: 20,
+    paddingBottom: 20,
   },
-  studyButton: {
+  closeButton: {
     width: '100%',
   },
-  deleteButton: {
+  toast: {
     position: 'absolute',
-    bottom: 20,
-    left: 20,
-    right: 20,
+    left: 16,
+    right: 16,
+    bottom: 40,
+    backgroundColor: '#2ecc71',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 5,
   },
-  deleteButtonText: {
-    color: '#ff4444',
-    fontSize: 16,
+  toastText: {
+    color: '#fff',
     marginLeft: 8,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  completionOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  completionContent: {
+    backgroundColor: COLORS.BACKGROUND.CARD,
+    borderRadius: 16,
+    padding: 20,
+    width: '88%',
+  },
+  completionTitle: {
+    fontSize: TYPOGRAPHY.SIZES.XLARGE,
+    fontWeight: TYPOGRAPHY.WEIGHTS.BOLD,
+    color: COLORS.TEXT.PRIMARY,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  completionText: {
+    fontSize: TYPOGRAPHY.SIZES.MEDIUM,
+    color: COLORS.TEXT.SECONDARY,
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  completionButtons: {
+    flexDirection: 'row',
   },
 }); 

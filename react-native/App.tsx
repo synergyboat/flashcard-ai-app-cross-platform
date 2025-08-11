@@ -15,7 +15,15 @@ import { SCREEN_NAMES, SCREEN_TITLES, COLORS } from './src/config';
 export type RootStackParamList = {
   [SCREEN_NAMES.HOME]: undefined;
   [SCREEN_NAMES.AI_GENERATE]: undefined;
-  [SCREEN_NAMES.DECK_DETAILS]: { deckId: number; deckName: string };
+  [SCREEN_NAMES.DECK_DETAILS]: {
+    deckId?: number;
+    deckName?: string;
+    previewDeck?: {
+      name: string;
+      description?: string;
+      flashcards: { question: string; answer: string }[];
+    };
+  };
   [SCREEN_NAMES.STUDY]: { deckId: number; deckName: string };
 };
 
@@ -29,35 +37,24 @@ export default function App() {
         <Stack.Navigator
           initialRouteName={SCREEN_NAMES.HOME}
           screenOptions={{
-            headerStyle: {
-              backgroundColor: COLORS.BACKGROUND.HEADER,
-            },
-            headerTintColor: COLORS.TEXT.PRIMARY,
-            headerTitleStyle: {
-              fontWeight: 'bold',
-              color: COLORS.TEXT.PRIMARY,
-            },
+            headerShown: false,
           }}
         >
           <Stack.Screen
             name={SCREEN_NAMES.HOME}
             component={HomeScreen}
-            options={{ title: SCREEN_TITLES.HOME }}
           />
           <Stack.Screen
             name={SCREEN_NAMES.AI_GENERATE}
             component={AIGenerateScreen}
-            options={{ title: SCREEN_TITLES.AI_GENERATE }}
           />
           <Stack.Screen
             name={SCREEN_NAMES.DECK_DETAILS}
             component={DeckDetailsScreen}
-            options={{ title: SCREEN_TITLES.DECK_DETAILS }}
           />
           <Stack.Screen
             name={SCREEN_NAMES.STUDY}
             component={StudyScreen}
-            options={{ title: SCREEN_TITLES.STUDY }}
           />
         </Stack.Navigator>
       </NavigationContainer>

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -8,82 +8,103 @@ import {
   PanResponder,
   Animated,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Flashcard } from '../types';
-import { APP_CONFIG, COLORS, TYPOGRAPHY, UI_CONFIG, SHADOWS } from '../config';
+import { APP_CONFIG } from '../config';
 
 const { width, height } = Dimensions.get('window');
-const CARD_HEIGHT = height * APP_CONFIG.ANIMATIONS.CARD_HEIGHT_FACTOR;
 const SWIPE_THRESHOLD = width * APP_CONFIG.ANIMATIONS.SWIPE_THRESHOLD_FACTOR;
 
 interface CardStackProps {
   flashcards: Flashcard[];
   currentIndex: number;
   onSwipeLeft: () => void;
-  onSwipeRight: () => void;
-  onCardPress: () => void;
+  isPreview?: boolean;
 }
 
 export default function CardStack({
   flashcards,
   currentIndex,
   onSwipeLeft,
-  onSwipeRight,
-  onCardPress,
+  isPreview = false,
 }: CardStackProps) {
   const [isFlipped, setIsFlipped] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
-  // Reset flip state when card changes
   React.useEffect(() => {
     setIsFlipped(false);
   }, [currentIndex]);
-  
-  // Simple pan values without complex transforms
+
   const pan = useRef(new Animated.ValueXY()).current;
   const rotate = useRef(new Animated.Value(0)).current;
 
   const currentCard = flashcards[currentIndex];
   const nextCard = flashcards[currentIndex + 1];
-  const prevCard = flashcards[currentIndex - 1];
+  const nextNextCard = flashcards[currentIndex + 2];
+
+  // Generate pastel-like colors similar to Flutter RandomGradientGenerator
+  const pastelPalette = useMemo(
+    () => [
+      'rgba(255, 205, 210, 0.22)', // red100
+      'rgba(248, 187, 208, 0.22)', // pink100/200
+      'rgba(225, 190, 231, 0.22)', // purple100
+      'rgba(209, 196, 233, 0.22)', // deepPurple100
+      'rgba(197, 202, 233, 0.22)', // indigo100
+      'rgba(187, 222, 251, 0.22)', // blue100
+      'rgba(179, 229, 252, 0.22)', // lightBlue100
+      'rgba(178, 235, 242, 0.22)', // cyan100
+      'rgba(178, 223, 219, 0.22)', // teal100
+      'rgba(200, 230, 201, 0.22)', // green100
+      'rgba(220, 237, 200, 0.22)', // lightGreen100
+      'rgba(240, 244, 195, 0.22)', // lime100
+      'rgba(255, 249, 196, 0.22)', // yellow100
+      'rgba(255, 236, 179, 0.22)', // amber100
+      'rgba(255, 224, 178, 0.22)', // orange100
+      'rgba(255, 204, 188, 0.22)', // deepOrange100
+    ],
+    []
+  );
+
+  const pickRandomColors = (count: number) => {
+    const result: string[] = [];
+    for (let i = 0; i < count; i += 1) {
+      result.push(pastelPalette[Math.floor(Math.random() * pastelPalette.length)]);
+    }
+    return result;
+  };
+
+  // Recompute gradients when the top card index changes to keep them stable per card
+  const topGradient1 = useMemo(() => {
+    return [...pickRandomColors(2), 'rgba(255,255,255,0.10)', 'rgba(255,255,255,0.40)', 'rgba(255,255,255,0.40)'];
+  }, [currentIndex]);
+  const topGradient2 = useMemo(() => {
+    return [...pickRandomColors(3), 'rgba(255,255,255,0.10)', 'rgba(255,255,255,0.10)', 'rgba(255,255,255,0.10)'];
+  }, [currentIndex]);
 
   const panResponder = useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (_, gesture) => {
+        const { dx, dy } = gesture;
+        return Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy);
+      },
       onPanResponderGrant: () => {
         setIsDragging(true);
-        pan.setOffset({
-          x: (pan.x as any)._value,
-          y: (pan.y as any)._value,
-        });
+        pan.setOffset({ x: (pan.x as any)._value, y: (pan.y as any)._value });
       },
-      
-      onPanResponderMove: (_, gestureState) => {
-        // Simple movement without complex transforms
-        pan.setValue({
-          x: gestureState.dx,
-          y: gestureState.dy,
-        });
-        
-        // Simple rotation based on horizontal movement
-        const rotateValue = gestureState.dx / width;
-        rotate.setValue(rotateValue);
+      onPanResponderMove: (_, gesture) => {
+        pan.setValue({ x: gesture.dx, y: gesture.dy });
+        const r = gesture.dx / width;
+        rotate.setValue(r);
       },
-      
-      onPanResponderRelease: (_, gestureState) => {
+      onPanResponderRelease: (_, gesture) => {
         setIsDragging(false);
         pan.flattenOffset();
-        
-        const { dx } = gestureState;
-        
-        if (Math.abs(dx) > SWIPE_THRESHOLD) {
-          // Swipe threshold reached - animate off screen
-          const direction = dx > 0 ? 'right' : 'left';
-          animateSwipe(direction);
+        const { dx, vx } = gesture;
+        const shouldSwipe = Math.abs(dx) > SWIPE_THRESHOLD || Math.abs(vx) > 0.5;
+        if (shouldSwipe) {
+          animateSwipe(dx > 0 ? 'right' : 'left');
         } else {
-          // Return to center
           resetPosition();
         }
       },
@@ -92,7 +113,7 @@ export default function CardStack({
 
   const animateSwipe = (direction: 'left' | 'right') => {
     const toValue = direction === 'right' ? width : -width;
-    
+
     Animated.parallel([
       Animated.timing(pan.x, {
         toValue,
@@ -105,14 +126,7 @@ export default function CardStack({
         useNativeDriver: false,
       }),
     ]).start(() => {
-      // Call the appropriate callback
-      if (direction === 'left') {
-        onSwipeLeft();
-      } else {
-        onSwipeRight();
-      }
-      
-      // Reset for next card
+      onSwipeLeft();
       resetPosition();
       setIsFlipped(false);
     });
@@ -124,53 +138,84 @@ export default function CardStack({
   };
 
   const handleFlip = () => {
-    if (!isDragging) {
-      setIsFlipped(!isFlipped);
-    }
+    if (!isDragging) setIsFlipped(prev => !prev);
   };
 
-  const renderCard = (card: Flashcard, index: number, isCurrent: boolean = false) => {
-    const cardStyle = isCurrent ? styles.currentCard : styles.stackCard;
-    const zIndex = isCurrent ? 3 : 2 - index;
-    const stackScale = isCurrent ? 1 : 0.95 - index * 0.05;
+  // Height tuned to resemble Flutter screen proportion
+  const computedCardHeight = Math.min(height * (isPreview ? 0.50 : 0.56), 520);
 
-    // Only apply pan and rotate to current card
-    const animatedStyle = isCurrent ? {
-      transform: [
-        { translateX: pan.x },
-        { translateY: pan.y },
-        { rotate: rotate.interpolate({
-          inputRange: [-1, 0, 1],
-          outputRange: ['-15deg', '0deg', '15deg'],
-        })},
-        { scale: stackScale },
-      ],
-    } : {
-      transform: [{ scale: stackScale }],
-    };
+  // Second card scale grows slightly as you drag the top card
+  const scaleBump = pan.x.interpolate({
+    inputRange: [-150, 0, 150],
+    outputRange: [0.02, 0, 0.02],
+    extrapolate: 'clamp',
+  });
+  const secondBaseScale = new Animated.Value(0.96);
+  const secondScale = Animated.add(secondBaseScale, scaleBump);
+
+  // Layer renderer (bottom to top to mimic a deck shadow)
+  const renderLayer = (
+    card: Flashcard,
+    layerIndex: number,
+    isTop: boolean
+  ) => {
+    const baseScale = layerIndex === 0 ? 1 : layerIndex === 1.4 ? secondScale : 0.94;
+    const translateY = layerIndex * 12; // small vertical offset like Flutter stack
+
+    const animatedStyle = isTop
+      ? {
+        transform: [
+          { translateX: pan.x },
+          { translateY: pan.y },
+          {
+            rotate: rotate.interpolate({
+              inputRange: [-1, 0, 1],
+              outputRange: ['-12deg', '0deg', '12deg'],
+            }),
+          },
+          { scale: baseScale as any },
+        ],
+      }
+      : {
+        transform: [
+          { translateY },
+          { scale: baseScale as any },
+        ],
+      };
 
     return (
       <Animated.View
-        key={card.id}
-        style={[
-          cardStyle,
-          { zIndex },
-          animatedStyle,
-        ]}
-        {...(isCurrent ? panResponder.panHandlers : {})}
+        key={`${card.id}-${layerIndex}`}
+        style={[styles.card, { height: computedCardHeight }, animatedStyle]}
+        {...(isTop ? panResponder.panHandlers : {})}
       >
+        {/* Gradient layers to mimic Flutter radial gradients */}
+        <LinearGradient
+          pointerEvents="none"
+          colors={topGradient1 as [string, string, ...string[]]}
+          start={{ x: 1, y: 0 }}
+          end={{ x: 0.2, y: 0.8 }}
+          style={styles.gradientLayer}
+        />
+        <LinearGradient
+          pointerEvents="none"
+          colors={topGradient2 as [string, string, ...string[]]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0.8, y: 0.8 }}
+          style={styles.gradientLayer}
+        />
+        <View pointerEvents="none" style={styles.cardBorder} />
+
         <TouchableOpacity
-          onPress={isCurrent ? handleFlip : undefined}
-          activeOpacity={isCurrent ? 0.9 : 1}
+          onPress={isTop ? handleFlip : undefined}
+          activeOpacity={isTop ? 0.9 : 1}
           style={styles.cardContent}
         >
           <Text style={styles.cardText}>
             {isFlipped ? card.answer : card.question}
           </Text>
-          {isCurrent && (
-            <Text style={styles.tapHint}>
-              {isFlipped ? 'Tap to see question' : 'Tap to reveal answer'}
-            </Text>
+          {isTop && (
+            <Text style={styles.cardProgress}>Card {currentIndex + 1} of {flashcards.length}</Text>
           )}
         </TouchableOpacity>
       </Animated.View>
@@ -179,47 +224,11 @@ export default function CardStack({
 
   return (
     <View style={styles.container}>
-      <View style={styles.cardStack}>
-        {/* Render next card in background */}
-        {nextCard && renderCard(nextCard, currentIndex + 1)}
-        
-        {/* Render current card */}
-        {currentCard && renderCard(currentCard, currentIndex, true)}
-        
-        {/* Render previous card in background */}
-        {prevCard && renderCard(prevCard, currentIndex - 1)}
-      </View>
-
-      {/* Swipe indicators */}
-      <View style={styles.swipeIndicators}>
-        <TouchableOpacity 
-          style={[styles.indicator, styles.leftIndicator]}
-          onPress={onSwipeLeft}
-        >
-          <Ionicons name="arrow-back" size={24} color="#ff6b6b" />
-          <Text style={styles.indicatorText}>Skip</Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={[styles.indicator, styles.rightIndicator]}
-          onPress={onSwipeRight}
-        >
-          <Ionicons name="arrow-forward" size={24} color="#51cf66" />
-          <Text style={styles.indicatorText}>Got it</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Progress indicator */}
-      <View style={styles.progressContainer}>
-        <Text style={styles.progressText}>
-          {currentIndex + 1} of {flashcards.length}
-        </Text>
-      </View>
-
-      {/* Swipe instruction */}
-      <View style={styles.instructionContainer}>
-        <Text style={styles.instructionText}>
-          Swipe left to skip • Swipe right for "got it" • Tap to flip
-        </Text>
+      <View style={[styles.stackBox, { width: width - 40, height: computedCardHeight + 24 }]}>
+        {/* Render bottom to top: third, second, first */}
+        {nextNextCard && renderLayer(nextNextCard, 2, false)}
+        {nextCard && renderLayer(nextCard, 1, false)}
+        {currentCard && renderLayer(currentCard, 0, true)}
       </View>
     </View>
   );
@@ -230,43 +239,34 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingVertical: 20,
   },
-  cardStack: {
-    width: width - 40,
-    height: CARD_HEIGHT,
+  stackBox: {
     position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  currentCard: {
+  card: {
     position: 'absolute',
     width: '100%',
-    height: '100%',
     backgroundColor: 'white',
-    borderRadius: 20,
+    borderRadius: 64,
     padding: 24,
     elevation: 8,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
   },
-  stackCard: {
-    position: 'absolute',
-    width: '100%',
-    height: '100%',
-    backgroundColor: '#f8f9fa',
-    borderRadius: 20,
-    padding: 24,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+  gradientLayer: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 64,
+  },
+  cardBorder: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 64,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
   },
   cardContent: {
     flex: 1,
@@ -280,59 +280,10 @@ const styles = StyleSheet.create({
     color: '#333',
     lineHeight: 28,
   },
-  tapHint: {
+  cardProgress: {
     fontSize: 14,
     color: '#999',
     textAlign: 'center',
-    marginTop: 20,
-    fontStyle: 'italic',
-  },
-  swipeIndicators: {
-    position: 'absolute',
-    top: 20,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 40,
-  },
-  indicator: {
-    alignItems: 'center',
-    padding: 8,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-  },
-  leftIndicator: {
-    borderColor: '#ff6b6b',
-    borderWidth: 2,
-  },
-  rightIndicator: {
-    borderColor: '#51cf66',
-    borderWidth: 2,
-  },
-  indicatorText: {
-    fontSize: 12,
-    fontWeight: '600',
-    marginTop: 4,
-  },
-  progressContainer: {
-    position: 'absolute',
-    bottom: 60,
-    alignItems: 'center',
-  },
-  progressText: {
-    fontSize: 16,
-    color: '#666',
-    fontWeight: '600',
-  },
-  instructionContainer: {
-    position: 'absolute',
-    bottom: 20,
-    alignItems: 'center',
-  },
-  instructionText: {
-    fontSize: 12,
-    color: '#999',
-    textAlign: 'center',
+    marginTop: 40,
   },
 }); 

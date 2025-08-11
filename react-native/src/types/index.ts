@@ -1,15 +1,15 @@
 export interface Deck {
   id?: number;
-  name: string;
-  description: string;
+  name?: string;
+  description?: string;
   createdAt?: Date;
   updatedAt?: Date;
-  flashcardCount?: number;
+  flashcards?: Flashcard[];
 }
 
 export interface Flashcard {
   id?: number;
-  deckId: number;
+  deckId?: number;
   question: string;
   answer: string;
   createdAt?: Date;

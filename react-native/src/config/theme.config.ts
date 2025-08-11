@@ -8,6 +8,7 @@ export const COLORS = {
     CARD: '#ffffff',
     HEADER: '#FEF8FF',
     MODAL: '#1b1d26',
+    TRANSPARENT: 'rgba(255, 255, 255, 0)',
   },
   
   TEXT: {
