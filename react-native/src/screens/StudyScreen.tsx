@@ -49,14 +49,14 @@ export default function StudyScreen() {
   };
 
   const handleSwipeLeft = async () => {
-    
+
     // Mark as reviewed and move to next
     if (currentIndex < flashcards.length) {
       if (flashcards[currentIndex].id) {
         await databaseORMService.updateFlashcardReview(flashcards[currentIndex].id);
       }
     }
-    
+
     if (currentIndex < flashcards.length - 1) {
       const newIndex = currentIndex + 1;
       setCurrentIndex(newIndex);
@@ -80,38 +80,11 @@ export default function StudyScreen() {
   };
 
   const handleSwipeRight = async () => {
-    
-    // Mark as reviewed and move to next (same as left for now)
-    if (currentIndex < flashcards.length) {
-      if (flashcards[currentIndex].id) {
-        await databaseORMService.updateFlashcardReview(flashcards[currentIndex].id);
-      }
-    }
-    
-    if (currentIndex < flashcards.length - 1) {
-      const newIndex = currentIndex + 1;
-      setCurrentIndex(newIndex);
-    } else {
-      // End of study session
-      Alert.alert(
-        'Study Session Complete!',
-        `You've reviewed all ${flashcards.length} cards in this deck.`,
-        [
-          {
-            text: 'Study Again',
-            onPress: () => setCurrentIndex(0),
-          },
-          {
-            text: 'Finish',
-            onPress: () => navigation.goBack(),
-          },
-        ]
-      );
-    }
+    handleSwipeLeft();
   };
 
   const handleCardPress = () => {
-    // This will be handled by the CardStack component for flipping
+
   };
 
   const handleClose = () => {
@@ -156,26 +129,22 @@ export default function StudyScreen() {
   return (
     <GradientBackground>
       <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.deckName}>{deckName}</Text>
-        <TouchableOpacity
-          style={styles.closeButton}
-          onPress={handleClose}
-        >
-          <Ionicons name="close" size={24} color="#666" />
-        </TouchableOpacity>
-      </View>
+        <View style={styles.header}>
+          <Text style={styles.deckName}>{deckName}</Text>
+          <TouchableOpacity
+            style={styles.closeButton}
+            onPress={handleClose}
+          >
+            <Ionicons name="close" size={24} color="#666" />
+          </TouchableOpacity>
+        </View>
 
-      {/* Card Stack */}
-      <CardStack
-        key={`card-${currentIndex}`}
-        flashcards={flashcards}
-        currentIndex={currentIndex}
-        onSwipeLeft={handleSwipeLeft}
-        onSwipeRight={handleSwipeRight}
-        onCardPress={handleCardPress}
-      />
+        <CardStack
+          key={`card-${currentIndex}`}
+          flashcards={flashcards}
+          currentIndex={currentIndex}
+          onSwipeLeft={handleSwipeLeft}
+        />
       </View>
     </GradientBackground>
   );

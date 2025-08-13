@@ -7,24 +7,29 @@ import {
   Alert,
   ScrollView,
   ActivityIndicator,
+  TouchableOpacity,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { Ionicons } from '@expo/vector-icons';
 import { RootStackParamList } from '../../App';
 import { AIGenerationRequest } from '../types';
 import { databaseORMService } from '../services/database-orm';
 import { aiService } from '../services/ai';
 import GradientButton from '../components/GradientButton';
 import GradientBackground from '../components/GradientBackground';
-import { SCREEN_NAMES, APP_CONFIG } from '../config';
+import { SCREEN_NAMES, COLORS, TYPOGRAPHY } from '../config';
+import { Dropdown } from 'react-native-element-dropdown';
 
 type AIGenerateScreenNavigationProp = StackNavigationProp<RootStackParamList, typeof SCREEN_NAMES.AI_GENERATE>;
 
 export default function AIGenerateScreen() {
   const navigation = useNavigation<AIGenerateScreenNavigationProp>();
   const [topic, setTopic] = useState('');
-  const [cardCount, setCardCount] = useState(APP_CONFIG.CARD_LIMITS.DEFAULT.toString());
+  const [cardCount, setCardCount] = useState(10);
   const [loading, setLoading] = useState(false);
+
+  const dropdownData = [5, 10, 15, 20].map(v => ({ label: String(v), value: v }));
 
   const handleGenerate = async () => {
     if (!topic.trim()) {
@@ -32,15 +37,14 @@ export default function AIGenerateScreen() {
       return;
     }
 
-    const count = parseInt(cardCount);
-    if (isNaN(count) || count < APP_CONFIG.CARD_LIMITS.MIN || count > APP_CONFIG.CARD_LIMITS.MAX) {
-      Alert.alert('Error', `Please enter a valid number of cards (${APP_CONFIG.CARD_LIMITS.MIN}-${APP_CONFIG.CARD_LIMITS.MAX})`);
-      return;
-    }
+    const count = cardCount;
 
     setLoading(true);
 
     try {
+      // Ensure database is initialized
+      await databaseORMService.init();
+
       const request: AIGenerationRequest = {
         topic: topic.trim(),
         cardCount: count,
@@ -48,35 +52,15 @@ export default function AIGenerateScreen() {
 
       const response = await aiService.generateFlashcards(request);
 
-      // Create the deck with flashcards using ORM
-      const deckId = await databaseORMService.createDeckWithFlashcards(
-        {
+      // Navigate to Deck Details in preview mode; user will save from there
+      navigation.navigate(SCREEN_NAMES.DECK_DETAILS, {
+        previewDeck: {
           name: response.deck.name,
           description: response.deck.description,
+          flashcards: response.flashcards,
         },
-        response.flashcards
-      );
-
-      Alert.alert(
-        'Success!',
-        `Generated ${response.flashcards.length} flashcards about "${topic}"`,
-        [
-          {
-            text: 'View Deck',
-            onPress: () => navigation.navigate(SCREEN_NAMES.DECK_DETAILS, {
-              deckId,
-              deckName: response.deck.name,
-            }),
-          },
-          {
-            text: 'Generate Another',
-            onPress: () => {
-              setTopic('');
-              setCardCount(APP_CONFIG.CARD_LIMITS.DEFAULT.toString());
-            },
-          },
-        ]
-      );
+        deckName: response.deck.name,
+      });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       Alert.alert('Error', `Failed to generate flashcards: ${errorMessage}`);
@@ -87,107 +71,187 @@ export default function AIGenerateScreen() {
 
   return (
     <GradientBackground>
-      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-        <Text style={styles.title}>Generate Deck with AI</Text>
-      
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>Topic</Text>
-        <TextInput
-          style={styles.input}
-          value={topic}
-          onChangeText={setTopic}
-          placeholder="Enter your prompt here"
-          placeholderTextColor="#999"
-          multiline
-          numberOfLines={3}
-          textAlignVertical="top"
-        />
-      </View>
-
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>Number of Cards</Text>
-        <TextInput
-          style={styles.input}
-          value={cardCount}
-          onChangeText={setCardCount}
-          placeholder="5"
-          placeholderTextColor="#999"
-          keyboardType="numeric"
-          maxLength={2}
-        />
-      </View>
-
-      <View style={styles.buttonContainer}>
-        <GradientButton
-          title={loading ? 'Generating...' : 'Generate Deck'}
-          onPress={handleGenerate}
-          disabled={loading}
-          style={styles.generateButton}
-        />
-      </View>
-
-      {loading && (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#4A90E2" />
-          <Text style={styles.loadingText}>Creating your flashcards...</Text>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Ionicons name="chevron-back" size={24} color={COLORS.TEXT.PRIMARY} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Generate Deck with AI</Text>
+          <View style={styles.backButton} />
         </View>
-      )}
 
-      <View style={styles.infoContainer}>
-        <Text style={styles.infoTitle}>How it works:</Text>
-        <Text style={styles.infoText}>
-          • Enter any topic you want to study{'\n'}
-          • Choose how many flashcards to generate{'\n'}
-          • AI will create educational questions and answers{'\n'}
-          • Your new deck will be saved automatically
-        </Text>
-        
-      </View>
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+          <View>
+            <Text style={styles.subtitle}>
+              Provide a topic or concept below. The AI will generate a flashcard deck based on your input.
+            </Text>
+
+            <View style={styles.formContainer}>
+              <View style={styles.inputContainer}>
+                <TextInput
+                  style={styles.textInput}
+                  value={topic}
+                  onChangeText={setTopic}
+                  placeholder="Enter a topic for the deck"
+                  placeholderTextColor={COLORS.TEXT.LIGHT}
+                  multiline={false}
+                />
+              </View>
+
+              <View style={styles.dropdownContainer}>
+                <Text style={styles.dropdownLabel}>Max number of cards</Text>
+                <Dropdown
+                  data={dropdownData}
+                  style={styles.dropdown}
+                  containerStyle={styles.dropdownMenu}
+                  placeholderStyle={styles.dropdownPlaceholder}
+                  selectedTextStyle={styles.dropdownSelectedText}
+                  labelField="label"
+                  valueField="value"
+                  value={cardCount}
+                  placeholder="Select"
+                  onChange={(item: { label: string; value: number }) => setCardCount(item.value)}
+                  renderRightIcon={() => (
+                    <Ionicons name="chevron-down" size={18} color={COLORS.TEXT.SECONDARY} />
+                  )}
+                  maxHeight={220}
+                />
+              </View>
+            </View>
+
+            <View style={styles.buttonContainer}>
+              <GradientButton
+                title={loading ? 'Generating...' : 'Generate Deck'}
+                onPress={handleGenerate}
+                disabled={loading || !topic.trim()}
+                style={styles.generateButton}
+                icon={<Ionicons name="sparkles" size={20} color={COLORS.TEXT.WHITE} />}
+              />
+            </View>
+
+            {loading && (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={COLORS.PRIMARY} />
+                <Text style={styles.loadingText}>Creating your flashcards...</Text>
+              </View>
+            )}
+          </View>
+
+          <View style={styles.infoContainer}>
+            <Ionicons name="information-circle-outline" size={24} color={COLORS.TEXT.LIGHT} />
+            <Text style={styles.infoText}>
+              The AI will generate a deck based on your prompt. The generated deck will contain a maximum of {cardCount} cards. Please note that language models may not always produce accurate or relevant results, so review the generated cards before using them.
+            </Text>
+          </View>
       </ScrollView>
+      </View>
     </GradientBackground>
   );
 }
 
 const styles = StyleSheet.create({
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    paddingTop: 50,
+  },
+  backButton: {
+    padding: 4,
+    width: 32,
+  },
+  headerTitle: {
+    fontSize: TYPOGRAPHY.SIZES.LARGE,
+    fontWeight: TYPOGRAPHY.WEIGHTS.MEDIUM,
+    color: COLORS.TEXT.PRIMARY,
+    flex: 1,
+    textAlign: 'center',
+  },
   container: {
     flex: 1,
+    paddingTop: 24,
   },
   content: {
-    padding: 20,
+    padding: 16,
     paddingBottom: 40,
+    justifyContent: 'space-between',
+    height: '100%',
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333333',
+    fontSize: TYPOGRAPHY.SIZES.LARGE,
+    fontWeight: TYPOGRAPHY.WEIGHTS.MEDIUM,
+    color: COLORS.TEXT.PRIMARY,
     textAlign: 'center',
-    marginBottom: 32,
-  },
-  inputContainer: {
-    marginBottom: 24,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333333',
     marginBottom: 8,
   },
-  input: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
-    color: '#333',
+  subtitle: {
+    fontSize: TYPOGRAPHY.SIZES.SMALL,
+    color: COLORS.TEXT.PRIMARY,
+    textAlign: 'center',
+    marginBottom: 32,
+    paddingHorizontal: 8,
+  },
+  formContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0)',
+    borderRadius: 8,
+    padding: 8,
+    marginBottom: 48,
+    marginTop: 32,
+  },
+  inputContainer: {
+    marginBottom: 16,
+  },
+  textInput: {
+    backgroundColor: COLORS.BACKGROUND.CARD,
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#e1e5e9',
+    borderColor: `${COLORS.TEXT.PRIMARY}66`,
+    padding: 16,
+    fontSize: TYPOGRAPHY.SIZES.MEDIUM,
+    color: COLORS.TEXT.PRIMARY,
     minHeight: 50,
   },
+  dropdownContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+  },
+  dropdownLabel: {
+    fontSize: TYPOGRAPHY.SIZES.SMALL,
+    color: COLORS.TEXT.SECONDARY,
+  },
+  dropdown: {
+    // flex: 1,
+    width: 72,
+    backgroundColor: COLORS.BACKGROUND.TRANSPARENT,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: `${COLORS.TEXT.PRIMARY}66`,
+    paddingHorizontal: 12,
+    paddingVertical: 16,
+    minHeight: 44,
+    marginLeft: 12,
+  },
+  dropdownMenu: {
+    borderRadius: 8,
+  },
+  dropdownPlaceholder: {
+    color: COLORS.TEXT.SECONDARY,
+    fontSize: TYPOGRAPHY.SIZES.MEDIUM,
+  },
+  dropdownSelectedText: {
+    color: COLORS.TEXT.PRIMARY,
+    fontSize: TYPOGRAPHY.SIZES.LARGE,
+    fontWeight: TYPOGRAPHY.WEIGHTS.MEDIUM,
+  },
   buttonContainer: {
-    marginTop: 16,
     marginBottom: 32,
   },
   generateButton: {
-    width: '100%',
+
   },
   loadingContainer: {
     alignItems: 'center',
@@ -195,48 +259,20 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 12,
-    fontSize: 16,
-    color: '#666',
+    fontSize: TYPOGRAPHY.SIZES.MEDIUM,
+    color: COLORS.TEXT.SECONDARY,
   },
   infoContainer: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: '#e1e5e9',
-  },
-  infoTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingHorizontal: 8,
   },
   infoText: {
-    fontSize: 14,
-    color: '#666',
-    lineHeight: 20,
-  },
-  aiStatusContainer: {
-    marginTop: 20,
-    paddingTop: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#e1e5e9',
-  },
-  aiStatusTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 8,
-  },
-  aiStatusText: {
-    fontSize: 14,
-    color: '#4A90E2',
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  aiStatusNote: {
-    fontSize: 12,
-    color: '#999',
-    fontStyle: 'italic',
+    fontSize: TYPOGRAPHY.SIZES.TINY,
+    color: COLORS.TEXT.SECONDARY,
+    lineHeight: TYPOGRAPHY.LINE_HEIGHTS.TIGHT,
+    marginLeft: 8,
+    flex: 1,
+    textAlign: 'justify',
   },
 }); 

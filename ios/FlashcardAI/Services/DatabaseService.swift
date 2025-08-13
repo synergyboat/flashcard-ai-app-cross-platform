@@ -73,8 +73,6 @@ class DatabaseService: @unchecked Sendable {
         sqlite3_exec(db, createFlashcardTable, nil, nil, nil)
     }
     
-    // MARK: - Deck Operations
-    
     func getDecks() async -> [Deck] {
         guard await initialize() else {
             return []
@@ -233,6 +231,36 @@ class DatabaseService: @unchecked Sendable {
         return -1
     }
     
+    func updateDeck(_ deck: Deck) async {
+        guard await initialize(), let deckId = deck.id else {
+            return
+        }
+        
+        await withCheckedContinuation { continuation in
+            dbQueue.async {
+                self.updateDeckSync(id: deckId, name: deck.name, description: deck.description)
+                continuation.resume()
+            }
+        }
+    }
+    
+    private func updateDeckSync(id: Int, name: String, description: String) {
+        let now = ISO8601DateFormatter().string(from: Date())
+        let query = "UPDATE deck SET name = ?, description = ?, updatedAt = ? WHERE id = ?"
+        var statement: OpaquePointer?
+        
+        if sqlite3_prepare_v2(db, query, -1, &statement, nil) == SQLITE_OK {
+            sqlite3_bind_text(statement, 1, name, -1, SQLITE_TRANSIENT)
+            sqlite3_bind_text(statement, 2, description, -1, SQLITE_TRANSIENT)
+            sqlite3_bind_text(statement, 3, now, -1, SQLITE_TRANSIENT)
+            sqlite3_bind_int(statement, 4, Int32(id))
+            
+            sqlite3_step(statement)
+        }
+        
+        sqlite3_finalize(statement)
+    }
+    
     func deleteDeck(id: Int) async {
         guard await initialize() else {
             return
@@ -258,8 +286,6 @@ class DatabaseService: @unchecked Sendable {
         
         sqlite3_finalize(statement)
     }
-    
-    // MARK: - Flashcard Operations
     
     func getFlashcards(deckId: Int) async -> [Flashcard] {
         guard await initialize() else {
@@ -387,6 +413,50 @@ class DatabaseService: @unchecked Sendable {
             sqlite3_step(statement)
         }
         
+        sqlite3_finalize(statement)
+    }
+        
+    func updateFlashcard(id: Int, question: String, answer: String) async {
+        guard await initialize() else { return }
+        await withCheckedContinuation { continuation in
+            dbQueue.async {
+                self.updateFlashcardSync(id: id, question: question, answer: answer)
+                continuation.resume()
+            }
+        }
+    }
+    
+    private func updateFlashcardSync(id: Int, question: String, answer: String) {
+        let now = ISO8601DateFormatter().string(from: Date())
+        let query = "UPDATE flashcard SET question = ?, answer = ?, updatedAt = ? WHERE id = ?"
+        var statement: OpaquePointer?
+        if sqlite3_prepare_v2(db, query, -1, &statement, nil) == SQLITE_OK {
+            sqlite3_bind_text(statement, 1, question, -1, SQLITE_TRANSIENT)
+            sqlite3_bind_text(statement, 2, answer, -1, SQLITE_TRANSIENT)
+            sqlite3_bind_text(statement, 3, now, -1, SQLITE_TRANSIENT)
+            sqlite3_bind_int(statement, 4, Int32(id))
+            sqlite3_step(statement)
+        }
+        sqlite3_finalize(statement)
+    }
+    
+    func deleteFlashcard(id: Int) async {
+        guard await initialize() else { return }
+        await withCheckedContinuation { continuation in
+            dbQueue.async {
+                self.deleteFlashcardSync(id: id)
+                continuation.resume()
+            }
+        }
+    }
+    
+    private func deleteFlashcardSync(id: Int) {
+        let query = "DELETE FROM flashcard WHERE id = ?"
+        var statement: OpaquePointer?
+        if sqlite3_prepare_v2(db, query, -1, &statement, nil) == SQLITE_OK {
+            sqlite3_bind_int(statement, 1, Int32(id))
+            sqlite3_step(statement)
+        }
         sqlite3_finalize(statement)
     }
     

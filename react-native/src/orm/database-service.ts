@@ -13,9 +13,32 @@ export class DatabaseService {
   async init(): Promise<void> {
     this.db = await SQLite.openDatabaseAsync(DATABASE_CONFIG.NAME);
 
+    // Create tables if they don't exist
+    await this.createTables();
     
     this.deckDao = new DeckDao(this.db);
     this.flashcardDao = new FlashcardDao(this.db);
+  }
+
+  private async createTables(): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    try {
+      // Create deck table
+      const deckTableSQL = DeckEntity.generateCreateTableSQL();
+      console.log('Creating deck table:', deckTableSQL);
+      await this.db.runAsync(deckTableSQL);
+
+      // Create flashcard table
+      const flashcardTableSQL = FlashcardEntity.generateCreateTableSQL();
+      console.log('Creating flashcard table:', flashcardTableSQL);
+      await this.db.runAsync(flashcardTableSQL);
+
+      console.log('Database tables created successfully');
+    } catch (error) {
+      console.error('Error creating database tables:', error);
+      throw error;
+    }
   }
 
   // Deck operations

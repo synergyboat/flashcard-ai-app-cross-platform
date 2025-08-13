@@ -93,24 +93,9 @@ export abstract class BaseEntity {
     return row;
   }
 
-  // Create entity instance from database row
-  static fromRow<T extends BaseEntity>(this: new (...args: any[]) => T, row: Record<string, any>): T {
-    const instance = new this();
-    const columns = (this as any).getColumns();
-
-    columns.forEach((col: { name: string; propertyKey: string; type: string }) => {
-      const value = row[col.name];
-      if (value !== undefined && value !== null) {
-        // Handle date conversion
-        if (col.type === 'TEXT' && typeof value === 'string' && BaseEntity.isISODateString(value)) {
-          (instance as any)[col.propertyKey] = new Date(value);
-        } else {
-          (instance as any)[col.propertyKey] = value;
-        }
-      }
-    });
-
-    return instance;
+  // Create entity instance from database row - to be overridden in subclasses
+  static fromRow(row: Record<string, any>): any {
+    throw new Error('fromRow must be implemented in subclass');
   }
 
   private static isISODateString(value: string): boolean {

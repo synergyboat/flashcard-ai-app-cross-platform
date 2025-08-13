@@ -69,6 +69,10 @@ class HomeViewController: UIViewController {
     private var decks: [Deck] = []
     private let databaseService = DatabaseService.shared
     
+    // Animation state
+    private var isShakingMode = false
+    private var shakingCells: Set<IndexPath> = []
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
@@ -133,6 +137,16 @@ class HomeViewController: UIViewController {
         collectionView.delegate = self
         collectionView.dataSource = self
         collectionView.register(DeckCollectionViewCell.self, forCellWithReuseIdentifier: DeckCollectionViewCell.identifier)
+        
+        // Add long press gesture
+        let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
+        longPressGesture.minimumPressDuration = 0.5
+        collectionView.addGestureRecognizer(longPressGesture)
+        
+        // Add tap gesture to exit shaking mode
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
+        tapGesture.cancelsTouchesInView = false
+        view.addGestureRecognizer(tapGesture)
     }
     
     private func loadDecks() {
@@ -155,6 +169,114 @@ class HomeViewController: UIViewController {
         navigationController?.pushViewController(aiGenerateVC, animated: true)
     }
     
+    @objc private func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
+        guard gesture.state == .began else { return }
+        
+        let point = gesture.location(in: collectionView)
+        if collectionView.indexPathForItem(at: point) != nil {
+            startShakingMode()
+        }
+    }
+    
+    @objc private func handleTap(_ gesture: UITapGestureRecognizer) {
+        if isShakingMode {
+            stopShakingMode()
+        }
+    }
+    
+    private func startShakingMode() {
+        guard !isShakingMode else { return }
+        isShakingMode = true
+        
+        // Start shaking all visible cells
+        for cell in collectionView.visibleCells {
+            if let deckCell = cell as? DeckCollectionViewCell {
+                deckCell.startShaking()
+            }
+        }
+    }
+    
+    private func stopShakingMode() {
+        guard isShakingMode else { return }
+        isShakingMode = false
+        
+        // Stop shaking all cells
+        for cell in collectionView.visibleCells {
+            if let deckCell = cell as? DeckCollectionViewCell {
+                deckCell.stopShaking()
+            }
+        }
+    }
+    
+    private func showEditDeckModal(for indexPath: IndexPath) {
+        let deck = decks[indexPath.item]
+        
+        let alert = UIAlertController(title: "Edit Deck", message: "Edit deck name and description", preferredStyle: .alert)
+        
+        alert.addTextField { textField in
+            textField.text = deck.name
+            textField.placeholder = "Deck Name"
+        }
+        
+        alert.addTextField { textField in
+            textField.text = deck.description
+            textField.placeholder = "Description (optional)"
+        }
+        
+        let saveAction = UIAlertAction(title: "Save", style: .default) { [weak self] _ in
+            guard let nameField = alert.textFields?[0],
+                  let descriptionField = alert.textFields?[1],
+                  let name = nameField.text?.trimmingCharacters(in: .whitespacesAndNewlines),
+                  !name.isEmpty else {
+                return
+            }
+            
+            let description = descriptionField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            let updatedDeck = Deck(id: deck.id, name: name, description: description, flashcardCount: deck.flashcardCount)
+            
+            Task {
+                await self?.databaseService.updateDeck(updatedDeck)
+                DispatchQueue.main.async {
+                    self?.decks[indexPath.item] = updatedDeck
+                    self?.collectionView.reloadItems(at: [indexPath])
+                }
+            }
+        }
+        
+        let deleteAction = UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
+            self?.confirmDeleteDeck(at: indexPath)
+        }
+        
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        alert.addAction(saveAction)
+        alert.addAction(deleteAction)
+        
+        present(alert, animated: true)
+    }
+    
+    private func confirmDeleteDeck(at indexPath: IndexPath) {
+        let deck = decks[indexPath.item]
+        let alert = UIAlertController(title: "Confirm Deletion", message: "This action cannot be undone.\n\nAre you sure you want to delete this deck?", preferredStyle: .alert)
+        
+        let deleteAction = UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
+            guard let deckId = deck.id else { return }
+            
+            Task {
+                await self?.databaseService.deleteDeck(id: deckId)
+                DispatchQueue.main.async {
+                    self?.decks.remove(at: indexPath.item)
+                    self?.collectionView.deleteItems(at: [indexPath])
+                    self?.updateEmptyState()
+                    self?.stopShakingMode()
+                }
+            }
+        }
+        
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        alert.addAction(deleteAction)
+        
+        present(alert, animated: true)
+    }
 
 }
 
@@ -169,6 +291,19 @@ extension HomeViewController: UICollectionViewDataSource {
             return UICollectionViewCell()
         }
         cell.configure(with: decks[indexPath.item])
+        
+        // Apply shaking state if in shaking mode
+        if isShakingMode {
+            cell.startShaking()
+        } else {
+            cell.stopShaking()
+        }
+        
+        // Set edit button callback
+        cell.onEditTapped = { [weak self] in
+            self?.showEditDeckModal(for: indexPath)
+        }
+        
         return cell
     }
 }
@@ -176,10 +311,27 @@ extension HomeViewController: UICollectionViewDataSource {
 // MARK: - UICollectionViewDelegate
 extension HomeViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        // Don't navigate if in shaking mode
+        guard !isShakingMode else { return }
+        
         let deck = decks[indexPath.item]
-        let deckDetailsVC = DeckDetailsViewController()
-        deckDetailsVC.configure(with: deck)
-        navigationController?.pushViewController(deckDetailsVC, animated: true)
+        // Directly start study session to match Flutter UX
+        Task {
+            if let deckId = deck.id {
+                let flashcards = await databaseService.getFlashcards(deckId: deckId)
+                DispatchQueue.main.async {
+                    if flashcards.isEmpty {
+                        let alert = UIAlertController(title: "No Cards", message: "This deck has no flashcards to study.", preferredStyle: .alert)
+                        alert.addAction(UIAlertAction(title: "OK", style: .default))
+                        self.present(alert, animated: true)
+                        return
+                    }
+                    let studyVC = StudyViewController()
+                    studyVC.configure(with: deck, flashcards: flashcards)
+                    self.navigationController?.pushViewController(studyVC, animated: true)
+                }
+            }
+        }
     }
 }
 

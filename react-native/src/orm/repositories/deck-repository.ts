@@ -7,12 +7,7 @@ export class DeckRepository {
   // Get all decks
   async getAll(): Promise<Deck[]> {
     const deckEntities = await databaseService.decks.getAllDecks();
-    return deckEntities.map(entity => {
-      const deck = entity.toDeck();
-      // Add flashcard count from the query
-      deck.flashcardCount = (entity as any).flashcardCount;
-      return deck;
-    });
+    return deckEntities.map(entity => entity.toDeck());
   }
 
   // Get deck by ID
