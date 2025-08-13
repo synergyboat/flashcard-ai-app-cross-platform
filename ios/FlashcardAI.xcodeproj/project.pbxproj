@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4FC790742E4C811C0089A0F5 /* DbSizeLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FC790712E4C811B0089A0F5 /* DbSizeLogger.swift */; };
+		4FC790752E4C811C0089A0F5 /* ExecutionLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FC790722E4C811B0089A0F5 /* ExecutionLogger.swift */; };
+		4FC790762E4C811C0089A0F5 /* RowSizeBenchmark.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FC790732E4C811B0089A0F5 /* RowSizeBenchmark.swift */; };
 		A901A8DE2B7A4FF000C3F6A0 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A901A8DD2B7A4FF000C3F6A0 /* AppDelegate.swift */; };
 		A901A8E02B7A4FF000C3F6A0 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A901A8DF2B7A4FF000C3F6A0 /* SceneDelegate.swift */; };
 		A901A8E22B7A4FF000C3F6A0 /* HomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A901A8E12B7A4FF000C3F6A0 /* HomeViewController.swift */; };
@@ -26,6 +29,9 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		4FC790712E4C811B0089A0F5 /* DbSizeLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DbSizeLogger.swift; sourceTree = "<group>"; };
+		4FC790722E4C811B0089A0F5 /* ExecutionLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExecutionLogger.swift; sourceTree = "<group>"; };
+		4FC790732E4C811B0089A0F5 /* RowSizeBenchmark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RowSizeBenchmark.swift; sourceTree = "<group>"; };
 		A901A8DA2B7A4FF000C3F6A0 /* FlashcardAI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FlashcardAI.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A901A8DD2B7A4FF000C3F6A0 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		A901A8DF2B7A4FF000C3F6A0 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -76,6 +82,9 @@
 		A901A8DC2B7A4FF000C3F6A0 /* FlashcardAI */ = {
 			isa = PBXGroup;
 			children = (
+				4FC790712E4C811B0089A0F5 /* DbSizeLogger.swift */,
+				4FC790722E4C811B0089A0F5 /* ExecutionLogger.swift */,
+				4FC790732E4C811B0089A0F5 /* RowSizeBenchmark.swift */,
 				A901A8DD2B7A4FF000C3F6A0 /* AppDelegate.swift */,
 				A901A8DF2B7A4FF000C3F6A0 /* SceneDelegate.swift */,
 				A901A90B2B7A508000C3F6A0 /* ViewControllers */,
@@ -203,6 +212,9 @@
 				A901A8E22B7A4FF000C3F6A0 /* HomeViewController.swift in Sources */,
 				A901A8DE2B7A4FF000C3F6A0 /* AppDelegate.swift in Sources */,
 				A901A8E02B7A4FF000C3F6A0 /* SceneDelegate.swift in Sources */,
+				4FC790742E4C811C0089A0F5 /* DbSizeLogger.swift in Sources */,
+				4FC790752E4C811C0089A0F5 /* ExecutionLogger.swift in Sources */,
+				4FC790762E4C811C0089A0F5 /* RowSizeBenchmark.swift in Sources */,
 				A901A8F22B7A500000C3F6A0 /* AIGenerateViewController.swift in Sources */,
 				A901A8F42B7A500800C3F6A0 /* DeckDetailsViewController.swift in Sources */,
 				A901A8F62B7A501000C3F6A0 /* StudyViewController.swift in Sources */,
@@ -435,4 +447,4 @@
 /* End XCConfigurationList section */
 	};
 	rootObject = A901A8D22B7A4FF000C3F6A0 /* Project object */;
-} 
+}
