@@ -9,11 +9,19 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
         window = UIWindow(windowScene: windowScene)
         
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        guard let homeViewController = storyboard.instantiateViewController(withIdentifier: "HomeViewController") as? HomeViewController else {
-            return
-        }
-        let navigationController = UINavigationController(rootViewController: homeViewController)
+//        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+//        guard let homeViewController = storyboard.instantiateViewController(withIdentifier: "HomeViewController") as? HomeViewController else {
+//            return
+//        }
+//        let navigationController = UINavigationController(rootViewController: homeViewController)
+        
+        let win = UIWindow(windowScene: windowScene)
+        let benchmark = BenchmarkViewController()
+        benchmark.itemCount = 100            // tweak if you want
+        benchmark.iterations = 3
+        benchmark.benchmarkType = .scrollPerformance
+        
+        let navigationController = UINavigationController(rootViewController: benchmark)
         
         window?.rootViewController = navigationController
         window?.makeKeyAndVisible()

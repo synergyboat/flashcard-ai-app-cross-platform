@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		070C55672E512DB000D62DF1 /* BenchmarkViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 070C55662E512DB000D62DF1 /* BenchmarkViewController.swift */; };
 		4FC790742E4C811C0089A0F5 /* DbSizeLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FC790712E4C811B0089A0F5 /* DbSizeLogger.swift */; };
 		4FC790752E4C811C0089A0F5 /* ExecutionLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FC790722E4C811B0089A0F5 /* ExecutionLogger.swift */; };
 		4FC790762E4C811C0089A0F5 /* RowSizeBenchmark.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FC790732E4C811B0089A0F5 /* RowSizeBenchmark.swift */; };
@@ -29,6 +30,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		070C55662E512DB000D62DF1 /* BenchmarkViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BenchmarkViewController.swift; sourceTree = "<group>"; };
 		4FC790712E4C811B0089A0F5 /* DbSizeLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DbSizeLogger.swift; sourceTree = "<group>"; };
 		4FC790722E4C811B0089A0F5 /* ExecutionLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExecutionLogger.swift; sourceTree = "<group>"; };
 		4FC790732E4C811B0089A0F5 /* RowSizeBenchmark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RowSizeBenchmark.swift; sourceTree = "<group>"; };
@@ -102,6 +104,7 @@
 		A901A90B2B7A508000C3F6A0 /* ViewControllers */ = {
 			isa = PBXGroup;
 			children = (
+				070C55662E512DB000D62DF1 /* BenchmarkViewController.swift */,
 				A901A8E12B7A4FF000C3F6A0 /* HomeViewController.swift */,
 				A901A8F12B7A500000C3F6A0 /* AIGenerateViewController.swift */,
 				A901A8F32B7A500800C3F6A0 /* DeckDetailsViewController.swift */,
@@ -225,6 +228,7 @@
 				A901A9002B7A504000C3F6A0 /* GradientButton.swift in Sources */,
 				A901A9022B7A504800C3F6A0 /* FlashcardView.swift in Sources */,
 				A901A9042B7A505000C3F6A0 /* DeckCollectionViewCell.swift in Sources */,
+				070C55672E512DB000D62DF1 /* BenchmarkViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
