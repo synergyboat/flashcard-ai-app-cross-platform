@@ -46,7 +46,7 @@ class BenchmarkHistoryScreen extends StatelessWidget {
                     _statRow("🎯 P95 Frame Time",
                         '${result.p95FrameTimeMs.toStringAsFixed(2)} ms'),
                     _statRow("⚠️ Dropped Frames",
-                        '${result.droppedFramesPercent.toStringAsFixed(2)}%'),
+                        '${result.droppedFramesPercentStrict.toStringAsFixed(2)}%'),
                     _statRow("🧠 Memory Delta",
                         '${result.memoryDeltaMB.toStringAsFixed(2)} MB'),
                     _statRow("💡 Performance Grade",

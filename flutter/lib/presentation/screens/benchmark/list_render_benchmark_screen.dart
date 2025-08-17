@@ -9,6 +9,29 @@ import 'package:flutter/services.dart';
 
 import 'benchmark_history_screen.dart';
 
+// ⬇️ Helpers
+String _toAscii(String s) => s.replaceAll(RegExp(r'[^\x20-\x7E]'), '');
+
+String _typeLabel(BenchmarkType t) {
+  switch (t) {
+    case BenchmarkType.staticRender:
+      return 'Static Render';
+    case BenchmarkType.scrollPerformance:
+      return 'Scroll Performance';
+    case BenchmarkType.memoryUsage:
+      return 'Memory Usage';
+  }
+}
+
+void releaseLog(String message, {String level = 'INFO'}) {
+  // ASCII for stdout (so CI/log collectors won't choke on emojis)
+  final ascii = _toAscii(message);
+  // ignore: avoid_print
+  print(ascii);
+  // Full Unicode for developer log (nice in IDE / Xcode / Android Studio)
+  log(message, name: 'Benchmark/$level');
+}
+
 class ListRenderBenchmarkScreen extends StatefulWidget {
   final int itemCount;
   final int iterations;
@@ -22,13 +45,14 @@ class ListRenderBenchmarkScreen extends StatefulWidget {
   });
 
   @override
-  State<ListRenderBenchmarkScreen> createState() => _ListRenderBenchmarkScreenState();
+  State<ListRenderBenchmarkScreen> createState() =>
+      _ListRenderBenchmarkScreenState();
 }
 
 enum BenchmarkType {
-  staticRender,    // Just measure list building and initial render
+  staticRender, // Just measure list building and initial render
   scrollPerformance, // Measure scroll performance separately
-  memoryUsage,     // Focus on memory consumption
+  memoryUsage, // Focus on memory consumption
 }
 
 class PlatformInfo {
@@ -43,14 +67,15 @@ class PlatformInfo {
   }
 
   static bool get isMobile => Platform.isAndroid || Platform.isIOS;
-  static bool get isDesktop => Platform.isWindows || Platform.isMacOS || Platform.isLinux;
+  static bool get isDesktop =>
+      Platform.isWindows || Platform.isMacOS || Platform.isLinux;
   static bool get supportsMemoryProfiling => isMobile && !kIsWeb;
 
   static double get expectedRefreshRate {
     // Platform-specific refresh rate expectations
     if (kIsWeb) return 60.0; // Most browsers cap at 60fps
-    if (Platform.isAndroid) return 60.0; // Can be 90/120Hz but 60 is baseline
-    if (Platform.isIOS) return 60.0; // iPhone: 60Hz, iPad Pro: 120Hz ProMotion
+    if (Platform.isAndroid) return 60.0; // 90/120Hz exist but 60 is baseline
+    if (Platform.isIOS) return 60.0; // iPhone: 60Hz, iPad Pro: 120Hz
     return 60.0; // Desktop default
   }
 
@@ -74,6 +99,10 @@ class BenchmarkResult {
   final String platform;
   final double targetFrameTimeMs;
 
+  final int scrollDurationMs; // actual measured scroll time for this run
+  final double scrollDistancePx; // total distance scrolled (logical px)
+  final double panelRefreshHz; // e.g., 60
+
   BenchmarkResult({
     required this.timeToFirstFrame,
     required this.frameTimesMs,
@@ -82,13 +111,23 @@ class BenchmarkResult {
     required this.itemCount,
     required this.platform,
     required this.targetFrameTimeMs,
+    this.scrollDurationMs = 0,
+    this.scrollDistancePx = 0.0,
+    this.panelRefreshHz = 60.0,
   });
 
-  double get averageFrameTimeMs => frameTimesMs.isEmpty ? 0 :
-  frameTimesMs.reduce((a, b) => a + b) / frameTimesMs.length;
+  double get actualFpsUnclamped {
+    if (frameTimesMs.isEmpty) return 0;
+    final totalMs = frameTimesMs.reduce((a, b) => a + b);
+    if (totalMs <= 0) return 0;
+    return frameTimesMs.length / (totalMs / 1000.0);
+  }
 
-  double get actualFps => frameTimesMs.isEmpty ? 0 :
-  frameTimesMs.length / (frameTimesMs.reduce((a, b) => a + b) / 1000);
+  double get actualFps => actualFpsUnclamped;
+  double get actualFpsClamped => math.min(actualFpsUnclamped, panelRefreshHz);
+
+  double get averageFrameTimeMs =>
+      frameTimesMs.isEmpty ? 0 : frameTimesMs.reduce((a, b) => a + b) / frameTimesMs.length;
 
   double get p95FrameTimeMs {
     if (frameTimesMs.isEmpty) return 0;
@@ -97,9 +136,15 @@ class BenchmarkResult {
     return sorted[math.max(0, index)];
   }
 
-  double get droppedFramesPercent {
-    final droppedCount = frameTimesMs.where((time) => time > targetFrameTimeMs * 1.5).length;
-    return frameTimesMs.isEmpty ? 0 : (droppedCount / frameTimesMs.length) * 100;
+  // Per-result jank stats (kept for possible UI/CSV)
+  double get droppedFramesPercentStrict {
+    final dropped = frameTimesMs.where((t) => t > targetFrameTimeMs).length;
+    return frameTimesMs.isEmpty ? 0 : (dropped / frameTimesMs.length) * 100;
+  }
+
+  double get jankyFramesPercent15x {
+    final janky = frameTimesMs.where((t) => t > targetFrameTimeMs * 1.5).length;
+    return frameTimesMs.isEmpty ? 0 : (janky / frameTimesMs.length) * 100;
   }
 
   String get performanceGrade {
@@ -119,6 +164,7 @@ class _ListRenderBenchmarkScreenState extends State<ListRenderBenchmarkScreen> {
   int _baselineMemoryMB = 0;
   Stopwatch? _renderStopwatch;
   bool _benchmarkComplete = false;
+  bool _timingsActive = false;
 
   @override
   void initState() {
@@ -130,9 +176,9 @@ class _ListRenderBenchmarkScreenState extends State<ListRenderBenchmarkScreen> {
   void _recordBaselineMemory() {
     if (PlatformInfo.supportsMemoryProfiling) {
       _baselineMemoryMB = (ProcessInfo.currentRss / (1024 * 1024)).round();
-      log('📊 Platform: ${PlatformInfo.platformName} - Baseline memory: ${_baselineMemoryMB}MB');
+      releaseLog('📊 Platform: ${PlatformInfo.platformName} - Baseline memory: ${_baselineMemoryMB}MB');
     } else {
-      log('📊 Platform: ${PlatformInfo.platformName} - Memory profiling not available');
+      releaseLog('📊 Platform: ${PlatformInfo.platformName} - Memory profiling not available');
     }
   }
 
@@ -150,76 +196,42 @@ class _ListRenderBenchmarkScreenState extends State<ListRenderBenchmarkScreen> {
     _frameTimings.clear();
     _renderStopwatch = Stopwatch()..start();
 
-    SchedulerBinding.instance.addTimingsCallback(_onFrameTimings);
+    if (!_timingsActive) {
+      SchedulerBinding.instance.addTimingsCallback(_onFrameTimings);
+      _timingsActive = true;
+    }
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final timeToFirstFrame = _renderStopwatch!.elapsed;
-      _renderStopwatch!.stop();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      try {
+        final timeToFirstFrame = _renderStopwatch!.elapsed;
+        _renderStopwatch!.stop();
 
-      switch (widget.benchmarkType) {
-        case BenchmarkType.staticRender:
-        case BenchmarkType.memoryUsage:
-          Future.delayed(const Duration(milliseconds: 1000), () {
+        switch (widget.benchmarkType) {
+          case BenchmarkType.staticRender:
+          case BenchmarkType.memoryUsage:
+            await Future.delayed(const Duration(milliseconds: 1000));
             _recordIteration(timeToFirstFrame);
             _nextIteration();
-          });
-          break;
+            break;
 
-        case BenchmarkType.scrollPerformance:
-          Future.delayed(const Duration(milliseconds: 300), () {
+          case BenchmarkType.scrollPerformance:
+            await Future.delayed(const Duration(milliseconds: 300));
             _performScrollBenchmark(timeToFirstFrame);
-          });
-          break;
+            break;
+        }
+      } catch (e, st) {
+        releaseLog('Iteration error: $e\n$st', level: 'ERROR');
+        // Safety: ensure we don't leave the timing callback active forever
+        if (_timingsActive) {
+          SchedulerBinding.instance.removeTimingsCallback(_onFrameTimings);
+          _timingsActive = false;
+        }
+        // Attempt to continue to next iteration
+        _nextIteration();
       }
     });
 
     setState(() {});
-  }
-
-  void _performScrollBenchmark(Duration timeToFirstFrame) async {
-    if (!mounted || _scrollController.position.maxScrollExtent == 0) {
-      _recordIteration(timeToFirstFrame);
-      _nextIteration();
-      return;
-    }
-
-    final maxScroll = _scrollController.position.maxScrollExtent;
-
-    double scrollSpeed;
-    if (kIsWeb) {
-      scrollSpeed = 300.0;
-    } else if (PlatformInfo.isMobile) {
-      scrollSpeed = 500.0;
-    } else {
-      scrollSpeed = 800.0;
-    }
-
-    final scrollDuration = Duration(milliseconds: (maxScroll / scrollSpeed * 1000).toInt());
-
-    _renderStopwatch = Stopwatch()..start();
-
-    try {
-      await _scrollController.animateTo(
-        maxScroll,
-        duration: scrollDuration,
-        curve: Curves.linear,
-      );
-
-      await _scrollController.animateTo(
-        0,
-        duration: Duration(milliseconds: 500),
-        curve: Curves.easeOut,
-      );
-    } catch (e) {
-      log('Scroll benchmark error: $e');
-    }
-
-    _renderStopwatch!.stop();
-
-    Future.delayed(const Duration(milliseconds: 200), () {
-      _recordIteration(timeToFirstFrame);
-      _nextIteration();
-    });
   }
 
   void _nextIteration() {
@@ -233,12 +245,80 @@ class _ListRenderBenchmarkScreenState extends State<ListRenderBenchmarkScreen> {
     _frameTimings.addAll(timings);
   }
 
-  void _recordIteration(Duration timeToFirstFrame) {
-    SchedulerBinding.instance.removeTimingsCallback(_onFrameTimings);
+  Future<void> _performScrollBenchmark(Duration timeToFirstFrame) async {
+    if (!mounted || !_scrollController.hasClients) {
+      _recordIteration(timeToFirstFrame);
+      _nextIteration();
+      return;
+    }
 
-    final frameTimesMs = _frameTimings
-        .map((timing) => timing.totalSpan.inMicroseconds / 1000.0)
-        .toList();
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    if (maxScroll == 0) {
+      _recordIteration(timeToFirstFrame);
+      _nextIteration();
+      return;
+    }
+
+    // Choose speed similar to other platforms
+    final double scrollSpeed = kIsWeb
+        ? 300.0
+        : (PlatformInfo.isMobile ? 500.0 : 800.0); // px/s
+
+    // One-way forward duration
+    final forwardDuration =
+    Duration(milliseconds: (maxScroll / scrollSpeed * 1000).toInt());
+
+    // 🔧 Ensure frame timings reflect ONLY the down-scroll window
+    _frameTimings.clear();
+
+    // Start measuring down-scroll only
+    _renderStopwatch = Stopwatch()..start();
+    try {
+      await _scrollController.animateTo(
+        maxScroll,
+        duration: forwardDuration,
+        curve: Curves.linear,
+      );
+    } catch (e, st) {
+      releaseLog('Scroll benchmark error (down): $e\n$st', level: 'ERROR');
+    }
+    _renderStopwatch!.stop();
+
+    // ✅ Record ONE-WAY distance/time and the frames captured during the down leg
+    final oneWayDurationMs = _renderStopwatch!.elapsedMilliseconds;
+    _recordIteration(
+      timeToFirstFrame,
+      scrollDurationMs: oneWayDurationMs,
+      scrollDistancePx: maxScroll, // ONE-WAY ONLY
+    );
+
+    // Return to top for next iteration, but DO NOT measure or capture frames
+    try {
+      await _scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeOut,
+      );
+    } catch (e, st) {
+      releaseLog('Scroll benchmark error (return): $e\n$st', level: 'ERROR');
+    }
+
+    // Proceed to next iteration
+    _nextIteration();
+  }
+
+  void _recordIteration(
+      Duration timeToFirstFrame, {
+        int scrollDurationMs = 0,
+        double scrollDistancePx = 0.0,
+      }) {
+    if (_timingsActive) {
+      SchedulerBinding.instance.removeTimingsCallback(_onFrameTimings);
+      _timingsActive = false;
+    }
+
+    final frameTimesMs =
+    _frameTimings.map((t) => t.totalSpan.inMicroseconds / 1000.0).toList();
 
     final currentMemoryMB = PlatformInfo.supportsMemoryProfiling
         ? (ProcessInfo.currentRss / (1024 * 1024)).round()
@@ -254,10 +334,16 @@ class _ListRenderBenchmarkScreenState extends State<ListRenderBenchmarkScreen> {
       itemCount: widget.itemCount,
       platform: PlatformInfo.platformName,
       targetFrameTimeMs: PlatformInfo.targetFrameTimeMs,
+      scrollDurationMs: scrollDurationMs,
+      scrollDistancePx: scrollDistancePx,
+      panelRefreshHz: PlatformInfo.expectedRefreshRate,
     );
 
     _results.add(result);
-    log('Iteration ${_currentIteration + 1} complete: ${result.averageFrameTimeMs.toStringAsFixed(2)}ms avg');
+    releaseLog(
+        'Iteration ${_currentIteration + 1} complete: '
+            '${result.averageFrameTimeMs.toStringAsFixed(2)}ms avg, '
+            '${result.frameTimesMs.length} frames');
   }
 
   void _completeBenchmark() {
@@ -279,9 +365,60 @@ class _ListRenderBenchmarkScreenState extends State<ListRenderBenchmarkScreen> {
   void _generateScientificReport() {
     if (_results.isEmpty) return;
 
-    final avgFrameTimes = _results.map((r) => r.averageFrameTimeMs).toList();
-    final firstFrameTimes = _results.map((r) => r.timeToFirstFrame.inMilliseconds).toList();
-    final memoryUsages = _results.map((r) => r.memoryDeltaMB).toList();
+    final avgFrameTimes =
+    _results.map((r) => r.averageFrameTimeMs).toList(growable: false);
+    final firstFrameTimes = _results
+        .map((r) => r.timeToFirstFrame.inMilliseconds.toDouble())
+        .toList(growable: false);
+    final memoryUsages =
+    _results.map((r) => r.memoryDeltaMB).toList(growable: false);
+
+    // Aggregate across all recorded frames (for the down leg only in scroll benchmark)
+    final allFrames = _results.expand((r) => r.frameTimesMs).toList();
+    final totalFrames = allFrames.length;
+    final meanFrameMsAll = _calculateMean(allFrames);
+
+    // Scroll window timing (now one-way only)
+    final totalScrollMs =
+    _results.fold<int>(0, (s, r) => s + r.scrollDurationMs);
+    final avgScrollMs =
+    _calculateMean(_results.map((r) => r.scrollDurationMs.toDouble()).toList());
+    final scrollDistancePx =
+    _results.isNotEmpty ? _results.first.scrollDistancePx : 0.0;
+
+    final panelHz = PlatformInfo.expectedRefreshRate;
+    final budgetMs = PlatformInfo.targetFrameTimeMs;
+
+    // FPS (prefer time-window based when scroll present; fallback to 1000/mean)
+    final fpsUnclamped = totalScrollMs > 0
+        ? (totalFrames / (totalScrollMs / 1000.0))
+        : (meanFrameMsAll > 0 ? 1000.0 / meanFrameMsAll : 0.0);
+    final fpsClamped = math.min(fpsUnclamped, panelHz);
+
+    // Strict vs janky drops
+    final droppedStrict =
+        allFrames.where((t) => t > budgetMs).length; // missed vsync
+    final janky15x = allFrames.where((t) => t > budgetMs * 1.5).length;
+    final droppedPctStrict =
+    totalFrames > 0 ? (droppedStrict / totalFrames) * 100.0 : 0.0;
+    final jankyPct =
+    totalFrames > 0 ? (janky15x / totalFrames) * 100.0 : 0.0;
+
+    // P95 across all frames
+    final p95All = () {
+      if (allFrames.isEmpty) return 0.0;
+      final sorted = List<double>.from(allFrames)..sort();
+      final idx = (sorted.length * 0.95).ceil() - 1;
+      return sorted[math.max(0, idx)];
+    }();
+
+    // Performance grade based on global mean frame time
+    final perfGrade = () {
+      if (meanFrameMsAll <= budgetMs) return 'A (Excellent)';
+      if (meanFrameMsAll <= budgetMs * 1.5) return 'B (Good)';
+      if (meanFrameMsAll <= budgetMs * 2.0) return 'C (Fair)';
+      return 'D (Poor)';
+    }();
 
     final report = '''
 🔬 SCIENTIFIC BENCHMARK REPORT
@@ -289,26 +426,31 @@ class _ListRenderBenchmarkScreenState extends State<ListRenderBenchmarkScreen> {
 📅 Timestamp: ${DateTime.now()}
 🔧 Platform: ${PlatformInfo.platformName} (${PlatformInfo.performanceProfile})
 📊 Configuration: ${widget.itemCount} items, ${widget.iterations} iterations
-🎯 Benchmark Type: ${widget.benchmarkType}
-⚡ Target Frame Time: ${PlatformInfo.targetFrameTimeMs.toStringAsFixed(2)}ms (${PlatformInfo.expectedRefreshRate.toStringAsFixed(0)} FPS)
+🎯 Benchmark Type: ${_typeLabel(widget.benchmarkType)}
+⚡ Target Frame Time: ${budgetMs.toStringAsFixed(2)}ms (${panelHz.toStringAsFixed(0)} FPS)
 
-📈 FRAME PERFORMANCE (averaged across ${widget.iterations} runs):
-• Avg Frame Time: ${_calculateMean(avgFrameTimes).toStringAsFixed(2)} ± ${_calculateStdDev(avgFrameTimes).toStringAsFixed(2)} ms
-• P95 Frame Time: ${_results.map((r) => r.p95FrameTimeMs).reduce(math.max).toStringAsFixed(2)} ms
-• Actual FPS: ${_calculateMean(_results.map((r) => r.actualFps).toList()).toStringAsFixed(2)}
-• Dropped Frames: ${_calculateMean(_results.map((r) => r.droppedFramesPercent).toList()).toStringAsFixed(2)}%
-• Performance Grade: ${_results.isNotEmpty ? _results.first.performanceGrade : 'N/A'}
+📈 FRAME PERFORMANCE (aggregate):
+• Avg Frame Time: ${meanFrameMsAll.toStringAsFixed(2)} ms
+• P95 Frame Time: ${p95All.toStringAsFixed(2)} ms
+• Actual FPS (unclamped): ${fpsUnclamped.toStringAsFixed(2)}
+• Actual FPS (clamped):   ${fpsClamped.toStringAsFixed(2)}
+• Panel Refresh: ${panelHz.toStringAsFixed(0)} Hz
+• Dropped Frames (strict > budget): ${droppedPctStrict.toStringAsFixed(2)}%
+• Janky Frames ( > 1.5× budget): ${jankyPct.toStringAsFixed(2)}%
+• Performance Grade: ${perfGrade}
 
-⏱️ INITIAL RENDER:
-• Time to First Frame: ${_calculateMean(firstFrameTimes.map((t) => t.toDouble()).toList()).toStringAsFixed(2)} ± ${_calculateStdDev(firstFrameTimes.map((t) => t.toDouble()).toList()).toStringAsFixed(2)} ms
+⏱️ INITIAL RENDER (per-iteration):
+• Time to First Frame: ${_calculateMean(firstFrameTimes).toStringAsFixed(2)} ± ${_calculateStdDev(firstFrameTimes).toStringAsFixed(2)} ms
 
-🧠 MEMORY IMPACT:
+🧠 MEMORY IMPACT (basis: RSS):
 • Memory Delta: ${PlatformInfo.supportsMemoryProfiling ? '${_calculateMean(memoryUsages).toStringAsFixed(2)} ± ${_calculateStdDev(memoryUsages).toStringAsFixed(2)} MB' : 'Not available on ${PlatformInfo.platformName}'}
-• Memory per Item: ${PlatformInfo.supportsMemoryProfiling ? '${(_calculateMean(memoryUsages) / widget.itemCount * 1000).toStringAsFixed(2)} KB/item' : 'N/A'}
+• Memory per Item: ${PlatformInfo.supportsMemoryProfiling ? '${(_calculateMean(memoryUsages) / (widget.itemCount == 0 ? 1 : widget.itemCount) * 1000).toStringAsFixed(2)} KB/item' : 'N/A'}
 
 📊 RELIABILITY:
-• Coefficient of Variation (Frame Time): ${(_calculateStdDev(avgFrameTimes) / _calculateMean(avgFrameTimes) * 100).toStringAsFixed(2)}%
-• Total Frames Analyzed: ${_results.fold(0, (sum, r) => sum + r.frameTimesMs.length)}
+• Coefficient of Variation (Frame Time): ${(_calculateStdDev(avgFrameTimes) / (_calculateMean(avgFrameTimes) == 0 ? 1 : _calculateMean(avgFrameTimes)) * 100).toStringAsFixed(2)}%
+• Total Frames Analyzed: ${totalFrames}
+• Scroll Distance: ${scrollDistancePx.toStringAsFixed(0)} px
+• Avg Scroll Duration: ${avgScrollMs.toStringAsFixed(0)} ms
 
 💡 INTERPRETATION:
 ${_generateInterpretation()}
@@ -318,8 +460,7 @@ ${_generatePlatformNotes()}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ''';
 
-    print(report);
-    log(report);
+    releaseLog(report);
   }
 
   double _calculateMean(List<double> values) {
@@ -330,20 +471,26 @@ ${_generatePlatformNotes()}
   double _calculateStdDev(List<double> values) {
     if (values.length < 2) return 0;
     final mean = _calculateMean(values);
-    final variance = values.map((v) => math.pow(v - mean, 2)).reduce((a, b) => a + b) / values.length;
+    final variance = values
+        .map((v) => math.pow(v - mean, 2))
+        .reduce((a, b) => a + b) /
+        values.length;
     return math.sqrt(variance);
   }
 
   String _generateInterpretation() {
-    final avgFrameTime = _calculateMean(_results.map((r) => r.averageFrameTimeMs).toList());
+    final avgFrameTime =
+    _calculateMean(_results.map((r) => r.averageFrameTimeMs).toList());
     final benchmarkType = widget.benchmarkType;
     final targetFrameTime = PlatformInfo.targetFrameTimeMs;
 
     String baseInterpretation;
     if (avgFrameTime <= targetFrameTime) {
-      baseInterpretation = "✅ Excellent performance - meeting ${PlatformInfo.expectedRefreshRate.toStringAsFixed(0)} FPS target";
+      baseInterpretation =
+      "✅ Excellent performance - meeting ${PlatformInfo.expectedRefreshRate.toStringAsFixed(0)} FPS target";
     } else if (avgFrameTime <= targetFrameTime * 1.5) {
-      baseInterpretation = "⚠️ Good performance - occasional frame drops below target";
+      baseInterpretation =
+      "⚠️ Good performance - occasional frame drops below target";
     } else if (avgFrameTime <= targetFrameTime * 2.0) {
       baseInterpretation = "⚠️ Fair performance - noticeable frame drops";
     } else {
@@ -353,17 +500,22 @@ ${_generatePlatformNotes()}
     String contextualNote;
     switch (benchmarkType) {
       case BenchmarkType.staticRender:
-        contextualNote = "Static rendering should maintain consistent frame times across all platforms.";
+        contextualNote =
+        "Static rendering should maintain consistent frame times across all platforms.";
         break;
       case BenchmarkType.scrollPerformance:
-        contextualNote = "Scroll performance includes animation overhead. ${kIsWeb ? 'Web performance may vary by browser.' : PlatformInfo.isMobile ? 'Mobile performance can vary by device specifications.' : 'Desktop should show optimal performance.'}";
+        contextualNote =
+        "Scroll performance includes animation overhead. ${kIsWeb ? 'Web performance may vary by browser.' : PlatformInfo.isMobile ? 'Mobile performance can vary by device specifications.' : 'Desktop should show optimal performance.'}";
         break;
       case BenchmarkType.memoryUsage:
         if (PlatformInfo.supportsMemoryProfiling) {
-          final avgMemory = _calculateMean(_results.map((r) => r.memoryDeltaMB).toList());
-          contextualNote = "Memory delta of ${avgMemory.toStringAsFixed(1)}MB for ${widget.itemCount} items. ${Platform.isIOS ? 'iOS uses ARC for automatic memory management.' : 'Android may show higher memory usage due to VM overhead.'}";
+          final avgMemory =
+          _calculateMean(_results.map((r) => r.memoryDeltaMB).toList());
+          contextualNote =
+          "Memory delta of ${avgMemory.toStringAsFixed(1)}MB for ${widget.itemCount} items. ${Platform.isIOS ? 'iOS uses ARC for automatic memory management.' : 'Android may show higher memory usage due to VM overhead.'}";
         } else {
-          contextualNote = "Memory profiling not available on ${PlatformInfo.platformName}.";
+          contextualNote =
+          "Memory profiling not available on ${PlatformInfo.platformName}.";
         }
         break;
     }
@@ -424,7 +576,8 @@ ${_generatePlatformNotes()}
             child: Center(
               child: Text(
                 '${index % 100}',
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.bold),
               ),
             ),
           ),
@@ -456,6 +609,10 @@ ${_generatePlatformNotes()}
 
   @override
   Widget build(BuildContext context) {
+    final progress = widget.iterations > 0
+        ? (_currentIteration.clamp(0, widget.iterations)) / widget.iterations
+        : 0.0;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Scientific List Benchmark'),
@@ -464,9 +621,7 @@ ${_generatePlatformNotes()}
       body: Column(
         children: [
           if (!_benchmarkComplete)
-            LinearProgressIndicator(
-              value: widget.iterations > 0 ? _currentIteration / widget.iterations : 0,
-            ),
+            LinearProgressIndicator(value: progress),
           if (!_benchmarkComplete)
             Padding(
               padding: const EdgeInsets.all(16),
@@ -498,7 +653,10 @@ ${_generatePlatformNotes()}
 
   @override
   void dispose() {
-    SchedulerBinding.instance.removeTimingsCallback(_onFrameTimings);
+    if (_timingsActive) {
+      SchedulerBinding.instance.removeTimingsCallback(_onFrameTimings);
+      _timingsActive = false;
+    }
     _scrollController.dispose();
     super.dispose();
   }
