@@ -18,3 +18,4 @@ class BenchmarkLogger: NSObject {
     }
   }
 }
+

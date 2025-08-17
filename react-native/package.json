@@ -19,7 +19,7 @@
     "@react-navigation/stack": "^7.4.2",
     "expo": "~53.0.20",
     "expo-file-system": "^18.1.11",
-    "expo-linear-gradient": "~14.0.2",
+    "expo-linear-gradient": "~14.1.5",
     "expo-secure-store": "^14.2.3",
     "expo-sqlite": "^15.2.14",
     "expo-status-bar": "~2.2.3",
@@ -28,9 +28,9 @@
     "react-native-device-info": "^14.0.4",
     "react-native-dotenv": "^3.4.11",
     "react-native-element-dropdown": "^2.12.4",
-    "react-native-gesture-handler": "~2.20.2",
-    "react-native-safe-area-context": "^5.5.2",
-    "react-native-screens": "^4.13.1",
+    "react-native-gesture-handler": "~2.24.0",
+    "react-native-safe-area-context": "5.4.0",
+    "react-native-screens": "~4.11.1",
     "reflect-metadata": "^0.2.2"
   },
   "devDependencies": {
@@ -48,6 +48,7 @@
     "expo-dev-client": "^5.2.4",
     "globals": "^16.3.0",
     "prettier": "^3.6.2",
+    "tsx": "^4.20.4",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.39.0"
   },

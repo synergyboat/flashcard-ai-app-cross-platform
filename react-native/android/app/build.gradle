@@ -92,7 +92,7 @@ android {
         applicationId 'com.anonymous.flashcardaiapp'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
+        versionCode 7
         versionName "1.0.0"
     }
     signingConfigs {

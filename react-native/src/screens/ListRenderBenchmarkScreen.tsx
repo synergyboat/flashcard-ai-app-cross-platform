@@ -94,6 +94,15 @@ const { MemoryProfiler, FrameProfiler, BenchmarkLogger: _BenchmarkLogger }: {
   BenchmarkLogger?: { log(level: 'info' | 'warn' | 'error', message: string): void };
 } = NativeModules as any;
 
+
+console.log('=== NATIVE MODULE DEBUG ===');
+console.log('NativeModules keys:', Object.keys(NativeModules));
+console.log('MemoryProfiler found:', !!MemoryProfiler);
+console.log('FrameProfiler found:', !!FrameProfiler);
+console.log('MemoryProfiler methods:', MemoryProfiler ? Object.getOwnPropertyNames(MemoryProfiler) : 'N/A');
+console.log('FrameProfiler methods:', FrameProfiler ? Object.getOwnPropertyNames(FrameProfiler) : 'N/A');
+console.log('===============================');
+
 /* ============================
  * Release-safe Logger (monkey-patches console in release)
  * ============================ */
@@ -101,7 +110,7 @@ const { MemoryProfiler, FrameProfiler, BenchmarkLogger: _BenchmarkLogger }: {
 type TLogLevel = 'info' | 'warn' | 'error';
 const LOG_TAG = 'Benchmark';
 
-// <<< fixed: ASCII-only sanitizer to prevent mojibake in syslog
+// ASCII-only sanitizer to prevent mojibake in syslog
 const toAscii = (s: string) => s.replace(/[^\x20-\x7E]/g, ''); // strip non-ASCII
 
 function _stringify(args: unknown[]) {
@@ -137,7 +146,7 @@ async function emit(level: TLogLevel, ...args: unknown[]) {
   const msg = `[${LOG_TAG}] ${_stringify(args)}`;
 
   // Always forward to JS console (Android release still surfaces via logcat)
-  // <<< fixed: Console gets ASCII-only to avoid mojibake in device logs
+  // Console gets ASCII-only to avoid mojibake in device logs
   const ascii = toAscii(msg);
   switch (level) {
     case 'info': console.info ? console.info(ascii) : console.log(ascii); break;
@@ -221,7 +230,7 @@ class BenchmarkResult {
   public targetFrameTimeMs: number;
   public scrollDistance: number;           // Total pixels scrolled
   public scrollDuration: number;           // Actual scroll time
-  public refreshRateHz: number;            // <<< fixed: store detected Hz
+  public refreshRateHz: number;            // detected Hz
 
   constructor({
     timeToFirstFrame,
@@ -264,7 +273,7 @@ class BenchmarkResult {
   }
 
   // Clamped actual FPS from average frame time (panel ceiling)
-  get clampedFpsFromFrameTime(): number {                          // <<< fixed
+  get clampedFpsFromFrameTime(): number {
     const ft = this.averageFrameTimeMs;
     if (!ft) return 0;
     return Math.min(1000 / ft, this.refreshRateHz || 60);
@@ -272,13 +281,11 @@ class BenchmarkResult {
 
   get actualFps(): number {
     if (this.frameMetrics.length === 0) return 0;
-    
-    // Sum actual frame durations (like Flutter does)
-    const totalRenderTimeMs = this.frameMetrics.reduce((sum, frame) => sum + frame.frameDuration, 0);
-    const totalRenderTimeSeconds = totalRenderTimeMs / 1000;
-    
-    return totalRenderTimeSeconds > 0 ? this.frameMetrics.length / totalRenderTimeSeconds : 0;
-}
+    const totalRenderTimeMs = this.frameMetrics.reduce((sum, f) => sum + f.frameDuration, 0);
+    return totalRenderTimeMs > 0
+      ? this.frameMetrics.length / (totalRenderTimeMs / 1000)
+      : 0;
+  }
 
   get p95FrameTimeMs(): number {
     const frameTimes = this.frameMetrics.map(f => f.frameDuration);
@@ -288,15 +295,16 @@ class BenchmarkResult {
     return sorted[Math.max(0, idx)];
   }
 
-  // Retained for backwards compatibility
-  get actualFpsTheoretical(): number {
-    const mean = this.averageFrameTimeMs;
-    return mean > 0 ? 1000 / mean : 0;
+  /** Strict drop: frames exceeding the panel budget (> targetFrameTimeMs) */
+  get droppedFramesPercentStrict(): number {
+    const dropped = this.frameMetrics.filter(f => f.frameDuration > this.targetFrameTimeMs).length;
+    return this.frameMetrics.length ? (dropped / this.frameMetrics.length) * 100 : 0;
   }
 
-  get droppedFramesPercent(): number {
-    const budget = this.targetFrameTimeMs * 1.5; // Use Flutter's threshold for consistency
-    const dropped = this.frameMetrics.filter(f => f.frameDuration > budget).length;
+  /** Janky drop: frames exceeding 1.5× budget (Flutter heuristic) */
+  get droppedFramesPercentJanky(): number {
+    const budget15 = this.targetFrameTimeMs * 1.5;
+    const dropped = this.frameMetrics.filter(f => f.frameDuration > budget15).length;
     return this.frameMetrics.length ? (dropped / this.frameMetrics.length) * 100 : 0;
   }
 
@@ -410,7 +418,7 @@ class PerformanceMonitor {
           });
           t += frameDuration;
         }
-      } catch (err) {
+      } catch {
         // If native stop failed, keep any RAF data we already collected
       }
     }
@@ -496,7 +504,7 @@ const calculateStdDev = (values: number[]): number => {
   return Math.sqrt(variance);
 };
 
-// <<< fixed: percentage formatter with higher precision default
+// percentage formatter with higher precision default
 const fmtPct = (value: number, decimals = 3) => `${value.toFixed(decimals)}%`;
 
 /* ============================
@@ -560,7 +568,7 @@ const CellRendererComponent = memo((props: any) => {
 });
 
 /* ============================
- * Main Component (old logic + native grace + release logs)
+ * Main Component (native-aware)
  * ============================ */
 
 const ListRenderBenchmarkScreen: React.FC<BenchmarkProps> = ({
@@ -590,7 +598,7 @@ const ListRenderBenchmarkScreen: React.FC<BenchmarkProps> = ({
   const scrollStartTimeRef = useRef(0);
   const scrollEndTimeRef = useRef(0);
 
-  // <<< fixed: display detection
+  // display detection
   const displayInfoRef = useRef<DisplayInfo>({
     refreshRate: 60,
     targetFrameTime: 1000 / 60,
@@ -612,7 +620,7 @@ const ListRenderBenchmarkScreen: React.FC<BenchmarkProps> = ({
       ? performance.now()
       : Date.now();
 
-  // <<< fixed: detect refresh rate if native provides it
+  // detect refresh rate if native provides it
   const detectDisplayInfo = useCallback(async () => {
     try {
       if (FrameProfiler?.getDisplayRefreshRate) {
@@ -634,7 +642,7 @@ const ListRenderBenchmarkScreen: React.FC<BenchmarkProps> = ({
           };
         }
       }
-    } catch (e) {
+    } catch {
       // ignore and keep defaults
     }
   }, []);
@@ -829,7 +837,7 @@ const ListRenderBenchmarkScreen: React.FC<BenchmarkProps> = ({
         targetFrameTimeMs: budgetMs,
         scrollDistance: maxScrollOffsetRef.current,
         scrollDuration,
-        refreshRateHz: refresh, // <<< fixed
+        refreshRateHz: refresh,
       });
 
       setResults(prev => {
@@ -863,13 +871,14 @@ const ListRenderBenchmarkScreen: React.FC<BenchmarkProps> = ({
    * Scientific Report Generation
    * ============================ */
 
-  // <<< fixed: ASCII-safe and pretty (UTF-8) variants
   const makeAsciiReport = (
     avgAll: number,
     p95All: number,
     avgFPSClamped: number,
+    avgFPSUnclamped: number,
     theoreticalFps: number,
-    droppedPercent: number,
+    droppedStrictPercent: number,
+    droppedJankyPercent: number,
     perfGrade: string,
     meanTTFP: number,
     stdTTFP: number,
@@ -893,8 +902,10 @@ const ListRenderBenchmarkScreen: React.FC<BenchmarkProps> = ({
       `- Avg Frame Time: ${avgAll.toFixed(2)} ms`,
       `- P95 Frame Time: ${p95All.toFixed(2)} ms`,
       `- Actual FPS (clamped): ${avgFPSClamped.toFixed(2)}`,
+      `- Actual FPS (unclamped): ${avgFPSUnclamped.toFixed(2)}`,
       `- Theoretical FPS (panel): ${theoreticalFps.toFixed(0)}`,
-      `- Dropped Frames: ${fmtPct(droppedPercent)}`,
+      `- Dropped Frames (strict > budget): ${fmtPct(droppedStrictPercent)}`,
+      `- Janky Frames ( > 1.5× budget): ${fmtPct(droppedJankyPercent)}`,
       `- Performance Grade: ${perfGrade}`,
       '',
       'INITIAL RENDER',
@@ -926,8 +937,10 @@ const ListRenderBenchmarkScreen: React.FC<BenchmarkProps> = ({
     avgAll: number,
     p95All: number,
     avgFPSClamped: number,
+    avgFPSUnclamped: number, 
     theoreticalFps: number,
-    droppedPercent: number,
+    droppedStrictPercent: number,
+    droppedJankyPercent: number,
     perfGrade: string,
     meanTTFP: number,
     stdTTFP: number,
@@ -955,8 +968,10 @@ const ListRenderBenchmarkScreen: React.FC<BenchmarkProps> = ({
 • Avg Frame Time: ${avgAll.toFixed(2)} ms
 • P95 Frame Time: ${p95All.toFixed(2)} ms
 • Actual FPS (clamped): ${avgFPSClamped.toFixed(2)}
+• Actual FPS (unclamped): ${avgFPSUnclamped.toFixed(2)}
 • Theoretical FPS (panel): ${theoreticalFps.toFixed(0)}
-• Dropped Frames: ${fmtPct(droppedPercent)}
+• Dropped Frames (strict > budget): ${fmtPct(droppedStrictPercent)}
+• Janky Frames ( > 1.5× budget): ${fmtPct(droppedJankyPercent)}
 • Performance Grade: ${perfGrade}
 
 ⏱️ INITIAL RENDER (per-iteration):
@@ -987,7 +1002,7 @@ ${platformNotes}
 • Native frame profiler used when available; JS RAF fallback otherwise
 • Memory profiling prefers native PSS; falls back to web JS heap
 • Smooth animation scroll matching Flutter behavior
-• Consistent dropped frame calculation (1.5× budget threshold)
+• Strict vs Janky drop metrics reported
 • FPS is clamped to panel refresh to avoid >Hz illusions
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 `;
@@ -997,7 +1012,7 @@ ${platformNotes}
       if (!currentResults.length) return currentResults;
 
       const refresh = displayInfoRef.current.refreshRate || 60;
-      const budget = 1000 / refresh; // <<< fixed: budget from detected panel
+      const budget = 1000 / refresh;
 
       const allFrames = currentResults.flatMap(r => r.frameMetrics.map(f => f.frameDuration));
       const avgAll = calculateMean(allFrames);
@@ -1009,10 +1024,16 @@ ${platformNotes}
       const totalScrollTime = currentResults.reduce((sum, r) => sum + r.scrollDuration, 0);
       const totalFrames = allFrames.length;
       const fpsFromDuration = totalScrollTime > 0 ? (totalFrames / (totalScrollTime / 1000)) : 0;
-      const avgFPSClamped = Math.min(fpsFromDuration || (avgAll ? 1000 / avgAll : 0), refresh);  // <<< fixed clamp
+      const avgFPSClamped = Math.min(fpsFromDuration || (avgAll ? 1000 / avgAll : 0), refresh);
+      const avgFPSUnclamped = (fpsFromDuration && Number.isFinite(fpsFromDuration))
+        ? fpsFromDuration
+        : (avgAll ? (1000 / avgAll) : 0);
 
-      const droppedFrames = allFrames.filter(duration => duration > budget * 1.5).length;
-      const droppedPercent = allFrames.length ? (droppedFrames / allFrames.length) * 100 : 0;
+      // Both drop metrics (aggregate)
+      const strictDrops = allFrames.filter(d => d > budget).length;
+      const jankyDrops = allFrames.filter(d => d > budget * 1.5).length;
+      const droppedStrictPercent = totalFrames ? (strictDrops / totalFrames) * 100 : 0;
+      const droppedJankyPercent = totalFrames ? (jankyDrops / totalFrames) * 100 : 0;
 
       const ttfpList = currentResults.map(r => r.timeToFirstFrame);
       const memList = currentResults.map(r => r.memoryDeltaMB);
@@ -1042,10 +1063,10 @@ ${platformNotes}
       const interpretation = generateInterpretation(avgAll, benchmarkType, budget);
       const platformNotes = generatePlatformNotes();
 
-      // ASCII-safe console/syslog report
+      // ASCII-safe console/syslog report (now with both drop metrics)
       const asciiReport = makeAsciiReport(
-        avgAll, p95All, avgFPSClamped, refresh,
-        droppedPercent, perfGrade, meanTTFP, stdTTFP,
+        avgAll, p95All, avgFPSClamped, avgFPSUnclamped, refresh,
+        droppedStrictPercent, droppedJankyPercent, perfGrade, meanTTFP, stdTTFP,
         meanMemMB, stdMemMB, memPerItemKB1000,
         covFrameTimePct, totalFrames,
         calculateMean(currentResults.map(r => r.scrollDuration)),
@@ -1057,8 +1078,8 @@ ${platformNotes}
 
       // Pretty UTF-8 file report
       const prettyReport = makePrettyReport(
-        avgAll, p95All, avgFPSClamped, refresh,
-        droppedPercent, perfGrade, meanTTFP, stdTTFP,
+        avgAll, p95All, avgFPSClamped, avgFPSUnclamped, refresh,
+        droppedStrictPercent, droppedJankyPercent, perfGrade, meanTTFP, stdTTFP,
         meanMemMB, stdMemMB, memPerItemKB1000,
         covFrameTimePct, totalFrames,
         calculateMean(currentResults.map(r => r.scrollDuration)),
@@ -1069,7 +1090,6 @@ ${platformNotes}
 
       const path = getBenchmarkLogFilePath?.();
       if (path) {
-        // write a header so users can find it
         emit('info', `Benchmark log file (UTF-8): ${path}`);
         fileSink?.append(`\n${prettyReport}\n`).catch(() => {});
       }
@@ -1209,7 +1229,7 @@ ${platformNotes}
       {benchmarkComplete && (
         <View style={styles.completeContainer}>
           <Text style={styles.completeText}>
-            ✅ Benchmark Complete! Check console/logs for ASCII report; pretty UTF‑8 report saved to file (if RNFS installed).
+            ✅ Benchmark Complete! Check console/logs for ASCII report; pretty UTF-8 report saved to file (if RNFS installed).
           </Text>
           <Text style={styles.fixedText}>
             🔧 Native profilers used when available; JS fallback retained. FPS clamped to panel refresh.
