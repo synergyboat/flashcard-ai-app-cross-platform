@@ -31,7 +31,7 @@ fun AppRouter() {
 
     NavHost(
         navController = navController,
-        startDestination = Routes.Splash.route
+        startDestination = Routes.Benchmark.route
     ) {
         composable(Routes.Splash.route) {
             SplashScreen(navController)
