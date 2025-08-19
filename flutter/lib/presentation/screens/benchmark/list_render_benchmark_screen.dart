@@ -1,3 +1,4 @@
+// (Your imports remain unchanged)
 import 'dart:developer';
 import 'dart:io';
 import 'dart:math' as math;
@@ -389,7 +390,7 @@ class _ListRenderBenchmarkScreenState extends State<ListRenderBenchmarkScreen> {
     final panelHz = PlatformInfo.expectedRefreshRate;
     final budgetMs = PlatformInfo.targetFrameTimeMs;
 
-    // FPS (prefer time-window based when scroll present; fallback to 1000/mean)
+    // FPS (prefer time-window based when scroll present; fallback preserved for non-scroll)
     final fpsUnclamped = totalScrollMs > 0
         ? (totalFrames / (totalScrollMs / 1000.0))
         : (meanFrameMsAll > 0 ? 1000.0 / meanFrameMsAll : 0.0);
@@ -420,6 +421,14 @@ class _ListRenderBenchmarkScreenState extends State<ListRenderBenchmarkScreen> {
       return 'D (Poor)';
     }();
 
+    // CHANGED: label memory metric type explicitly (RSS)
+    final memoryLineDelta = PlatformInfo.supportsMemoryProfiling
+        ? 'Memory Delta (RSS): ${_calculateMean(memoryUsages).toStringAsFixed(2)} ± ${_calculateStdDev(memoryUsages).toStringAsFixed(2)} MB'
+        : 'Memory Delta: Not available on ${PlatformInfo.platformName}';
+    final memoryLinePerItem = PlatformInfo.supportsMemoryProfiling
+        ? 'Memory per Item: ${(_calculateMean(memoryUsages) / (widget.itemCount == 0 ? 1 : widget.itemCount) * 1000).toStringAsFixed(2)} KB/item'
+        : 'Memory per Item: N/A';
+
     final report = '''
 🔬 SCIENTIFIC BENCHMARK REPORT
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -437,18 +446,18 @@ class _ListRenderBenchmarkScreenState extends State<ListRenderBenchmarkScreen> {
 • Panel Refresh: ${panelHz.toStringAsFixed(0)} Hz
 • Dropped Frames (strict > budget): ${droppedPctStrict.toStringAsFixed(2)}%
 • Janky Frames ( > 1.5× budget): ${jankyPct.toStringAsFixed(2)}%
-• Performance Grade: ${perfGrade}
+• Performance Grade: $perfGrade
 
 ⏱️ INITIAL RENDER (per-iteration):
 • Time to First Frame: ${_calculateMean(firstFrameTimes).toStringAsFixed(2)} ± ${_calculateStdDev(firstFrameTimes).toStringAsFixed(2)} ms
 
 🧠 MEMORY IMPACT (basis: RSS):
-• Memory Delta: ${PlatformInfo.supportsMemoryProfiling ? '${_calculateMean(memoryUsages).toStringAsFixed(2)} ± ${_calculateStdDev(memoryUsages).toStringAsFixed(2)} MB' : 'Not available on ${PlatformInfo.platformName}'}
-• Memory per Item: ${PlatformInfo.supportsMemoryProfiling ? '${(_calculateMean(memoryUsages) / (widget.itemCount == 0 ? 1 : widget.itemCount) * 1000).toStringAsFixed(2)} KB/item' : 'N/A'}
+• $memoryLineDelta
+• $memoryLinePerItem
 
 📊 RELIABILITY:
 • Coefficient of Variation (Frame Time): ${(_calculateStdDev(avgFrameTimes) / (_calculateMean(avgFrameTimes) == 0 ? 1 : _calculateMean(avgFrameTimes)) * 100).toStringAsFixed(2)}%
-• Total Frames Analyzed: ${totalFrames}
+• Total Frames Analyzed: $totalFrames
 • Scroll Distance: ${scrollDistancePx.toStringAsFixed(0)} px
 • Avg Scroll Duration: ${avgScrollMs.toStringAsFixed(0)} ms
 

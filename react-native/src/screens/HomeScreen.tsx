@@ -18,6 +18,7 @@ import GradientBackground from '../components/GradientBackground';
 import DeckCard from '../components/DeckCard';
 import GradientButton from '../components/GradientButton';
 import { SCREEN_NAMES, COLORS, UI_CONFIG, SHADOWS, TYPOGRAPHY } from '../config';
+import { DatabaseBenchmark } from '../services/benchmark-db';
 
 type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, typeof SCREEN_NAMES.HOME>;
 
@@ -37,6 +38,9 @@ export default function HomeScreen() {
   );
 
   useEffect(() => {
+     const benchmark = DatabaseBenchmark.getInstance();
+     benchmark.runBenchmark(5);
+
     if (decks.length === 0) {
       setShowText(true);
       const timer = setTimeout(() => setShowText(false), 5000);
@@ -47,7 +51,8 @@ export default function HomeScreen() {
   const loadDecks = async () => {
     try {
       await databaseORMService.init();
-      await databaseORMService.seedSampleData();
+      //await databaseORMService.seedSampleData();
+      databaseORMService.clearAllData();
       const loadedDecks = await databaseORMService.getDecks();
       setDecks(loadedDecks);
     } catch (error) {

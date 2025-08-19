@@ -8,4 +8,9 @@ class DeckWithFlashcardsDbEntity {
   final List<FlashcardDbEntity> flashcards;
 
   DeckWithFlashcardsDbEntity(this.deck, this.flashcards);
+
+  Map<String, dynamic> toMap() => {
+    ...deck.toMap(),
+    'flashcards': flashcards.map((fc) => fc.toMap()).toList(),
+  };
 }

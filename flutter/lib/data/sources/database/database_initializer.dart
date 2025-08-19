@@ -30,6 +30,7 @@ class DatabaseInitializer {
   }
 
   static Future<void> benchmarkDatabase(LocalAppDatabase database, Logger logger) async {
+    // This method is used to benchmark the database operations by adding a demo deck and flashcards.
     final Deck demoDeck = Deck(
       name: 'Benchmark Deck',
       description: 'A deck for benchmarking purposes',
@@ -40,42 +41,62 @@ class DatabaseInitializer {
     // Log the size of the deck entity
     logDbRowSize(demoDeckEntity.toMap(), name: 'Demo Deck', tag: 'db_row_size_add_demo_Deck', logger: logger);
 
+    // Add the demo deck to the database and log the duration
+    // This is a benchmark operation, so we log the duration of the database write operation
+    // to measure the performance of adding a deck to the database.
     final int deckId = await logExecDuration(
             ()=>database.deckDao.createDeck(demoDeckEntity),
             name: 'Adding demo deck to DB',
             tag: 'db_write_add_demo_deck',
     );
 
+    // Logging the Flashcard entity operations
+    // Create a demo flashcard
     final Flashcard demoFlashcard = Flashcard(
       question: 'What is the capital of Germany?',
       answer: 'Berlin',
     );
 
+    // Convert the Flashcard to a FlashcardDbEntity
     final FlashcardDbEntity demoFlashcardEntity = FlashcardDbEntity.fromFlashcard(demoFlashcard);
 
     // Log the size of the flashcard entity
+    // This is important for benchmarking purposes to understand the size of the data being added.
     logDbRowSize(demoFlashcardEntity.toMap(), name: 'Demo Flashcard', tag: 'db_row_size_add_demo_flashcard', logger: logger);
 
+    // Add the demo flashcard to the database
+    // This operation is also benchmarked to measure the performance of adding a flashcard to the database.
+    // The flashcard is associated with the previously created deck by using the deckId.
     await logExecDuration(
             ()=> database.flashcardDao.createFlashcard(demoFlashcardEntity.copyWith(deckId: deckId)),
             name: 'Adding demo flashcard to DB',
             tag: 'db_write_add_demo_flashcard',
     );
 
+    // Fetch the demo deck and its flashcards from the database to verify the addition
+    // This is a read operation, and we log the duration to measure the performance of fetching
+    // the deck and its associated flashcards from the database.
     final DeckDbEntity demoDeckFetched = await logExecDuration(
             ()=> database.deckDao.getDeckById(deckId),
             name: 'Fetching demo deck from DB',
             tag: 'db_read_fetch_demo_deck',
     ) ?? DeckDbEntity(name: 'Not Found', description: 'Not Found');
 
+    // Log the size of the fetched deck entity
+    // This is important to understand the size of the data retrieved from the database.
     logDbRowSize(demoDeckFetched.toMap(), name: 'Fetched Demo Deck', tag: 'db_row_size_fetched_demo_deck', logger: logger);
 
+    // Fetch the flashcards associated with the demo deck
+    // This operation retrieves all flashcards that belong to the demo deck using the deckId.
+    // We log the duration to measure the performance of fetching flashcards from the database.
     final List<FlashcardDbEntity> demoFlashcards = await logExecDuration(
             ()=> database.deckDao.getFlashcardsByDeckId(deckId),
             name: 'Fetching flashcards for demo deck',
             tag: 'db_read_fetch_demo_flashcards',
     );
 
+    // Log the size of each fetched flashcard entity
+    // This is important to understand the size of the data retrieved from the database.
     logTotalDbRowSize(
       demoFlashcards.map((fc) => fc.toMap()).toList(),
       name: 'Fetched Demo Flashcards',

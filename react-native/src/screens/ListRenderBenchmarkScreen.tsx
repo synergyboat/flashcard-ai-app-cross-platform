@@ -441,9 +441,10 @@ class PerformanceMonitor {
     if (this.scrollEventTimes.length === 0) return this.frameMetrics;
     const scrollStart = Math.min(...this.scrollEventTimes);
     const scrollEnd = Math.max(...this.scrollEventTimes);
+    // CHANGED: use a strict window [start, end] (remove ±100ms padding)
     return this.frameMetrics.filter(frame =>
-      frame.frameStartTime >= scrollStart - 100 &&
-      frame.frameStartTime <= scrollEnd + 100
+      frame.frameStartTime >= scrollStart &&
+      (frame.frameStartTime + frame.frameDuration) <= scrollEnd
     );
   }
 }
@@ -891,6 +892,10 @@ const ListRenderBenchmarkScreen: React.FC<BenchmarkProps> = ({
     scrollDistancePx: number,
     refresh: number,
   ) => {
+    // CHANGED: label memory metric type explicitly
+    const memLabel = PlatformInfo.platformName === 'iOS' || PlatformInfo.platformName === 'Android'
+      ? 'PSS'
+      : 'Heap';
     return [
       '[Benchmark] REACT NATIVE SCIENTIFIC BENCHMARK (NATIVE-AWARE)',
       `Timestamp: ${new Date().toISOString()}`,
@@ -913,7 +918,7 @@ const ListRenderBenchmarkScreen: React.FC<BenchmarkProps> = ({
       '',
       'MEMORY',
       meanMemMB !== null
-        ? `- Memory Delta: ${meanMemMB.toFixed(2)} ± ${stdMemMB!.toFixed(2)} MB`
+        ? `- Memory Delta (${memLabel}): ${meanMemMB.toFixed(2)} ± ${stdMemMB!.toFixed(2)} MB`
         : `- Memory Delta: Not available on ${PlatformInfo.platformName}`,
       meanMemMB !== null
         ? `- Memory per Item: ${memPerItemKB1000!.toFixed(2)} KB/item (1000 B/KB)`
@@ -955,7 +960,12 @@ const ListRenderBenchmarkScreen: React.FC<BenchmarkProps> = ({
     budgetMs: number,
     interpretation: string,
     platformNotes: string,
-  ) => `\
+  ) => {
+    // CHANGED: label memory metric type explicitly
+    const memLabel = PlatformInfo.platformName === 'iOS' || PlatformInfo.platformName === 'Android'
+      ? 'PSS'
+      : 'Heap';
+    return `\
 🔬 REACT NATIVE SCIENTIFIC BENCHMARK REPORT (NATIVE-AWARE)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📅 Timestamp: ${new Date().toISOString()}
@@ -979,7 +989,7 @@ const ListRenderBenchmarkScreen: React.FC<BenchmarkProps> = ({
 
 🧠 MEMORY IMPACT:
 • ${meanMemMB !== null
-  ? `Memory Delta: ${meanMemMB.toFixed(2)} ± ${stdMemMB!.toFixed(2)} MB`
+  ? `Memory Delta (${memLabel}): ${meanMemMB.toFixed(2)} ± ${stdMemMB!.toFixed(2)} MB`
   : `Memory Delta: Not available on ${PlatformInfo.platformName}`}
 • ${meanMemMB !== null
   ? `Memory per Item: ${memPerItemKB1000!.toFixed(2)} KB/item (1000 B/KB)`
@@ -1005,7 +1015,7 @@ ${platformNotes}
 • Strict vs Janky drop metrics reported
 • FPS is clamped to panel refresh to avoid >Hz illusions
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-`;
+`;};
 
   const generateScientificReport = (): void => {
     setResults(currentResults => {
@@ -1021,13 +1031,14 @@ ${platformNotes}
         return sorted.length ? sorted[Math.max(0, Math.ceil(sorted.length * 0.95) - 1)] : 0;
       })();
 
-      const totalScrollTime = currentResults.reduce((sum, r) => sum + r.scrollDuration, 0);
-      const totalFrames = allFrames.length;
-      const fpsFromDuration = totalScrollTime > 0 ? (totalFrames / (totalScrollTime / 1000)) : 0;
-      const avgFPSClamped = Math.min(fpsFromDuration || (avgAll ? 1000 / avgAll : 0), refresh);
-      const avgFPSUnclamped = (fpsFromDuration && Number.isFinite(fpsFromDuration))
-        ? fpsFromDuration
-        : (avgAll ? (1000 / avgAll) : 0);
+      // CHANGED: compute FPS strictly from the wall-clock window of frames
+      const allMetrics = currentResults.flatMap(r => r.frameMetrics);
+      const totalFrames = allMetrics.length;
+      const firstStart = totalFrames ? Math.min(...allMetrics.map(f => f.frameStartTime)) : 0;
+      const lastEnd = totalFrames ? Math.max(...allMetrics.map(f => f.frameStartTime + f.frameDuration)) : 0;
+      const windowMs = Math.max(1, lastEnd - firstStart);
+      const fpsUnclamped = totalFrames ? (totalFrames / (windowMs / 1000)) : 0; // no 1000/avg fallback
+      const fpsClamped = Math.min(fpsUnclamped, refresh);
 
       // Both drop metrics (aggregate)
       const strictDrops = allFrames.filter(d => d > budget).length;
@@ -1065,11 +1076,12 @@ ${platformNotes}
 
       // ASCII-safe console/syslog report (now with both drop metrics)
       const asciiReport = makeAsciiReport(
-        avgAll, p95All, avgFPSClamped, avgFPSUnclamped, refresh,
+        avgAll, p95All, fpsClamped, fpsUnclamped, refresh,
         droppedStrictPercent, droppedJankyPercent, perfGrade, meanTTFP, stdTTFP,
         meanMemMB, stdMemMB, memPerItemKB1000,
         covFrameTimePct, totalFrames,
-        calculateMean(currentResults.map(r => r.scrollDuration)),
+        // CHANGED: average scroll duration based on strict window
+        windowMs, // avgScrollMs field (reporting the measurement window)
         maxScrollOffsetRef.current,
         refresh
       );
@@ -1078,11 +1090,11 @@ ${platformNotes}
 
       // Pretty UTF-8 file report
       const prettyReport = makePrettyReport(
-        avgAll, p95All, avgFPSClamped, avgFPSUnclamped, refresh,
+        avgAll, p95All, fpsClamped, fpsUnclamped, refresh,
         droppedStrictPercent, droppedJankyPercent, perfGrade, meanTTFP, stdTTFP,
         meanMemMB, stdMemMB, memPerItemKB1000,
         covFrameTimePct, totalFrames,
-        calculateMean(currentResults.map(r => r.scrollDuration)),
+        windowMs, // CHANGED: strict window
         maxScrollOffsetRef.current,
         refresh, budget,
         interpretation, platformNotes
