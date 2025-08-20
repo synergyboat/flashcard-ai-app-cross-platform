@@ -15,12 +15,13 @@ Future<void> configCoreDi() async {
 
   getIt.registerSingleton<Logger>(Logger(
     printer: PrettyPrinter(
+      excludeBox: { Level.all : true },
       methodCount: 1,
       errorMethodCount: 5,
-      lineLength: 80,
-      colors: true,
-      printEmojis: true,
-      dateTimeFormat: DateTimeFormat.dateAndTime,
+      lineLength: 0,
+      //colors: true,
+      //printEmojis: true,
+      //dateTimeFormat: DateTimeFormat.dateAndTime,
     ),
   ));
 }

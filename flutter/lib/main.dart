@@ -1,6 +1,7 @@
 import 'package:flashcard/core/config/di/config_di.dart';
 import 'package:flashcard/core/config/services/env_service.dart';
 import 'package:flashcard/core/config/services/openai_service.dart';
+import 'package:flashcard/data/sources/database/database_benchmark_runner.dart';
 import 'package:flashcard/presentation/router/router.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +17,7 @@ void main() async {
   await configDi();
   await DatabaseInitializer.initialize();
   // Uncomment the line below to add sample data to the database for benchmarking purposes
-  //await DatabaseInitializer.benchmarkDatabase(getIt<LocalAppDatabase>(), getIt<Logger>());
+  await DatabaseBenchmarkRunner.run(database: getIt<LocalAppDatabase>(), logger: getIt<Logger>(), iterations: 5);
   OpenAiService.config(EnvService.getVariable('API_KEY') ?? '');
   PerformanceOverlay.allEnabled();
   runApp(const MyApp());

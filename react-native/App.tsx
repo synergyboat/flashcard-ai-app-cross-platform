@@ -9,6 +9,7 @@ import AIGenerateScreen from './src/screens/AIGenerateScreen';
 import DeckDetailsScreen from './src/screens/DeckDetailsScreen';
 import StudyScreen from './src/screens/StudyScreen';
 import { SCREEN_NAMES, SCREEN_TITLES, COLORS } from './src/config';
+import ListRenderBenchmarkScreen from './src/screens/ListRenderBenchmarkScreen';
 
 // Screens
 
@@ -34,6 +35,7 @@ export default function App() {
     <SafeAreaProvider>
       <NavigationContainer>
         <StatusBar style="auto" />
+        {/*<ListRenderBenchmarkScreen/>*/}
         <Stack.Navigator
           initialRouteName={SCREEN_NAMES.HOME}
           screenOptions={{

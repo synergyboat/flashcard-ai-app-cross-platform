@@ -432,6 +432,20 @@ fun generateScientificReport(results: List<BenchmarkResult>, benchmarkType: Benc
     val memPerItemKb = if (itemCount > 0) (avgMem * 1024) / itemCount else 0.0
     val coeffVar = if (meanFrameTime > 0) (stdFrameTime / meanFrameTime) * 100 else 0.0
 
+    // ✅ Extended params
+    val clampedFps = PlatformInfo.expectedRefreshRate
+    val unClampedFps = if (meanFrameTime > 0) 1000.0 / meanFrameTime else 0.0
+    val theoreticalFps = PlatformInfo.expectedRefreshRate
+    val droppedStrict = results.flatMap { it.frameTimesMs }
+        .count { it > frameTarget } * 100.0 / totalFrames
+    val jankyFrames = results.flatMap { it.frameTimesMs }
+        .count { it > frameTarget * 1.5 } * 100.0 / totalFrames
+
+    // Only meaningful for Scroll benchmark
+    val scrollDistance = if (benchmarkType == BenchmarkType.ScrollPerformance) itemCount * 80 else 0
+    val avgScrollDuration = if (benchmarkType == BenchmarkType.ScrollPerformance)
+        results.map { it.frameTimesMs.size * frameTarget }.mean() else 0.0
+
     val interpretation = when {
         meanFrameTime <= frameTarget -> "✅ Excellent performance - meeting ${PlatformInfo.expectedRefreshRate.toInt()} FPS target"
         meanFrameTime <= frameTarget * 1.5 -> "⚠️ Good performance - occasional frame drops below target"
@@ -446,40 +460,46 @@ fun generateScientificReport(results: List<BenchmarkResult>, benchmarkType: Benc
     }
 
     val report = """
-🔬 SCIENTIFIC BENCHMARK REPORT
+🔬 SCIENTIFIC BENCHMARK REPORT (NATIVE-AWARE)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📅 Timestamp: $timestamp
 🔧 Platform: ${PlatformInfo.platformName} (${PlatformInfo.performanceProfile})
-📊 Configuration: $itemCount items, $iterations iterations
-🎯 Benchmark Type: $benchmarkType
-⚡ Target Frame Time: ${"%.2f".format(frameTarget)}ms (${PlatformInfo.expectedRefreshRate.toInt()} FPS)
+📊 Config: items=$itemCount, iterations=$iterations, type=$benchmarkType
+🎯 Target: ${"%.0f".format(PlatformInfo.expectedRefreshRate)} FPS (${String.format("%.2f", frameTarget)} ms)
 
-📈 FRAME PERFORMANCE (averaged across $iterations runs):
-• Avg Frame Time: ${"%.2f".format(meanFrameTime)} ± ${"%.2f".format(stdFrameTime)} ms
+📈 FRAME PERFORMANCE (aggregated):
+• Avg Frame Time: ${"%.2f".format(meanFrameTime)} ms
 • P95 Frame Time: ${"%.2f".format(maxP95)} ms
-• Actual FPS: ${"%.2f".format(avgFps)}
-• Dropped Frames: ${"%.2f".format(avgDropped)}%
+• Actual FPS (clamped): ${"%.2f".format(clampedFps)}
+• Actual FPS (unclamped): ${"%.2f".format(unClampedFps)}
+• Theoretical FPS (panel): ${"%.0f".format(theoreticalFps)}
+• Dropped Frames (strict > budget): ${"%.3f".format(droppedStrict)}%
+• Janky Frames (> 1.5× budget): ${"%.3f".format(jankyFrames)}%
 • Performance Grade: $grade
 
 ⏱️ INITIAL RENDER:
 • Time to First Frame: ${"%.2f".format(avgFirstFrame)} ± ${"%.2f".format(stdFirstFrame)} ms
 
 🧠 MEMORY IMPACT:
-• Memory Delta: ${if (PlatformInfo.supportsMemoryProfiling) "${String.format("%.2f", avgMem)} ± ${String.format("%.2f", stdMem)} MB" else "Not available on ${PlatformInfo.platformName}"}
+• Memory Delta: ${if (PlatformInfo.supportsMemoryProfiling) "${String.format("%.2f", avgMem)} ± ${String.format("%.2f", stdMem)} MB" else "Not available"}
 • Memory per Item: ${if (PlatformInfo.supportsMemoryProfiling) "${String.format("%.2f", memPerItemKb)} KB/item" else "N/A"}
 
 📊 RELIABILITY:
-• Coefficient of Variation (Frame Time): ${"%.2f".format(coeffVar)}%
+• Coefficient of Variation (Frame Time): ${"%.3f".format(coeffVar)}%
 • Total Frames Analyzed: $totalFrames
+
+📜 SCROLL METRICS:
+• Scroll Distance: $scrollDistance px
+• Avg Scroll Duration: ${"%.0f".format(avgScrollDuration)} ms
+• Panel Refresh: ${"%.0f".format(PlatformInfo.expectedRefreshRate)} Hz
 
 💡 INTERPRETATION:
 $interpretation
 $contextualNote
 
-🔍 PLATFORM-SPECIFIC NOTES:
-• Android performance varies significantly by device and API level
-• Consider testing on different Android versions and hardware tiers
-• Results should be compared only within the same platform category
+🔍 PLATFORM NOTES:
+• Android performance varies across device tiers & API levels
+• Console/syslog output is ASCII-only (no mojibake risk)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 """.trimIndent()
 
