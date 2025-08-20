@@ -16,6 +16,7 @@ enum BenchmarkTypeIOS: String, CaseIterable {
     case staticRender = "Static Render"
     case scrollPerformance = "Scroll Performance"
     case memoryUsage = "Memory Usage"
+    case databasePerformance = "Database Performance"
 }
 
 // MARK: - Platform Info
@@ -174,6 +175,11 @@ final class BenchmarkViewController: UIViewController {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.30) {
                     self.performMeasuredScroll(timeToFirstFrameMs: ttfp)
                 }
+                
+            case .databasePerformance:
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.30) {
+                    self.performDatabaseBenchmark(timeToFirstFrameMs: ttfp)
+                }
             }
         }
     }
@@ -307,6 +313,19 @@ final class BenchmarkViewController: UIViewController {
     private func stopScrollDriver() {
         scrollDriver?.invalidate()
         scrollDriver = nil
+    }
+    
+    // MARK: Database Performance
+    
+    private func performDatabaseBenchmark(timeToFirstFrameMs: Double) {
+        Task {
+            do {
+                await DatabaseBenchmark.shared.runBenchmark(iterations: 1)
+                await MainActor.run {
+                    self.finishIteration(timeToFirstFrameMs: timeToFirstFrameMs, scrollDurationMs: 0, scrollDistancePx: 0)
+                }
+            }
+        }
     }
 
     // MARK: Frame monitoring
