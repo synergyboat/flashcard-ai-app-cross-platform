@@ -35,8 +35,8 @@ export default function App() {
     <SafeAreaProvider>
       <NavigationContainer>
         <StatusBar style="auto" />
-        {/*<ListRenderBenchmarkScreen/>*/}
-        <Stack.Navigator
+        <ListRenderBenchmarkScreen/>
+        {/*<Stack.Navigator
           initialRouteName={SCREEN_NAMES.HOME}
           screenOptions={{
             headerShown: false,
@@ -58,7 +58,7 @@ export default function App() {
             name={SCREEN_NAMES.STUDY}
             component={StudyScreen}
           />
-        </Stack.Navigator>
+        </Stack.Navigator>*/}
       </NavigationContainer>
     </SafeAreaProvider>
   );

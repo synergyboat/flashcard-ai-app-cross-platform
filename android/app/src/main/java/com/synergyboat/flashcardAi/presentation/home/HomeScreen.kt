@@ -8,6 +8,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,6 +20,8 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import com.synergyboat.flashcardAi.domain.entities.Deck
+import com.synergyboat.flashcardAi.domain.usecase.deck.CreateNewDeckUseCase
+import com.synergyboat.flashcardAi.domain.usecase.deck.DeleteDeckUseCase
 import com.synergyboat.flashcardAi.presentation.components.FlashcardAppBar
 import com.synergyboat.flashcardAi.presentation.components.FlashcardBottomActionBar
 import com.synergyboat.flashcardAi.presentation.components.buttons.AIButton
@@ -47,6 +50,10 @@ fun HomeScreen(
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
+    }
+
+    LaunchedEffect(lifecycleOwner) {
+        viewModel.runDatabaseBenchmark(5)
     }
 
     Scaffold(
@@ -96,3 +103,4 @@ fun HomeScreen(
         }
     )
 }
+
