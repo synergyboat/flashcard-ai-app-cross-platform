@@ -34,7 +34,7 @@ final List<GoRoute> routes = [
     name: 'benchmark',
     path: '/benchmark',
     builder: (context, state) => const ListRenderBenchmarkScreen(
-      itemCount: 500, benchmarkType: BenchmarkType.scrollPerformance, iterations: 3,
+      itemCount: 100, benchmarkType: BenchmarkType.scrollPerformance, iterations: 3,
     )
   )
 ];
