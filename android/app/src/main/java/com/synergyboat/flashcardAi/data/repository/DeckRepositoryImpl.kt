@@ -20,7 +20,7 @@ class DeckRepositoryImpl @Inject constructor(val deckDao: DeckDao) : DeckReposit
     }
 
     override suspend fun createDeck(deck: Deck): Long {
-        TODO("Not yet implemented")
+        return deckDao.createDeck(DeckEntityFactory.fromDeck(deck))
     }
 
     override suspend fun createDeckWithFlashcards(deck: Deck): Long {
