@@ -26,7 +26,7 @@ We designed this to help teams and founders evaluate:
 Whether you're comparing frameworks for your next EdTech, productivity, or GenAI app — this benchmark gives you side-by-side insights.
 
 📖 Full write-up:  
-📝 **Multi-Platform Flashcard AI Benchmark** (Coming Soon on [synergyboat.com](https://synergyboat.com/?utm_source=github&utm_medium=repo&utm_campaign=flashcard-benchmark))
+📝 [**Multi-Platform Flashcard AI Benchmark**](https://www.synergyboat.com/blog/flutter-vs-react-native-vs-native-performance-benchmark-2025?utm_campaign=brand&utm_medium=social&utm_source=github&utm_content=repo_link)
 
 ---
 
@@ -136,6 +136,7 @@ We welcome PRs for:
 - Dark mode
 - Accessibility features
 - UI improvements
+- Architectural Improvements
 
 ---
 
